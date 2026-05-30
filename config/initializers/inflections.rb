@@ -10,7 +10,10 @@
 #   inflect.uncountable %w( fish sheep )
 # end
 
-# These inflection rules are supported but not enabled by default:
-# ActiveSupport::Inflector.inflections(:en) do |inflect|
-#   inflect.acronym "RESTful"
-# end
+# Acronyms used in class/module names so they capitalize correctly under
+# Zeitwerk autoload and Rails helpers (humanize, titleize, etc.).
+# Note: we deliberately do NOT add "AI" as an acronym — that would force
+# AiAnalysis to become AIAnalysis and break existing model autoload.
+ActiveSupport::Inflector.inflections(:en) do |inflect|
+  inflect.acronym "OpenAI"
+end
