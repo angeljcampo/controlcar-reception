@@ -8,8 +8,8 @@ module Ai
       # Tools that the agent can call. Order is significant only for clarity
       # in the OpenAI tools array (the model can pick any of them).
       TOOLS = [
+        Ai::Tools::GetVehicleHistory,
         Ai::Tools::RespondWithAnalysis
-        # GetVehicleHistory lands in commit 4
       ].freeze
 
       class << self
