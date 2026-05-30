@@ -1,0 +1,14 @@
+# Sidekiq worker configuration.
+# Queues are processed in priority order (top first).
+#
+# - critical: future work that must run ASAP (e.g. health pings)
+# - default:  generic jobs
+# - ai:       OpenAI calls (AnalyzeWorkOrderJob, IngestPdfJob) — rate-limit aware
+# - low:      cleanups, backups, non-urgent maintenance
+
+:concurrency: <%= ENV.fetch("SIDEKIQ_CONCURRENCY", 5) %>
+:queues:
+  - critical
+  - default
+  - ai
+  - low
