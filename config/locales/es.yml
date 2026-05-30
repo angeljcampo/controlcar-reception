@@ -1,4 +1,12 @@
-# Locale "es" para la app. Sumar más keys aquí cuando se refactore a I18n.t.
+# Locale es-CL. Estructura:
+# - number/date/time/errors.messages: formatos base de Rails
+# - layouts.application: cadenas del layout (navbar, title)
+# - helpers.label/submit: overrides para form helpers de Rails
+# - work_orders.*: cadenas por acción (lazy lookup desde views/controllers)
+# - activerecord.attributes: nombres de columnas para f.label sin texto
+# - activerecord.errors.models: mensajes de error por modelo + atributo
+# - enums.work_order: labels de enum values (priority, status)
+
 es:
   number:
     format:
@@ -34,3 +42,94 @@ es:
       blank: "no puede estar vacío"
       taken: "ya está en uso"
       invalid: "no es válido"
+
+  layouts:
+    application:
+      full_title: "Controlcar — Recepción Inteligente"
+      app_short: "Controlcar"
+      app_tagline: "/ Recepción Inteligente"
+      nav:
+        work_orders: "Órdenes"
+        sidekiq: "Sidekiq"
+
+  # Helpers Rails: f.submit sin texto y f.label override sólo cuando difiere
+  # del nombre de atributo (caso photos: "Fotos del vehículo (opcional)").
+  helpers:
+    submit:
+      work_order:
+        create: "Guardar OT"
+        update: "Actualizar OT"
+    label:
+      work_order:
+        photos: "Fotos del vehículo (opcional)"
+
+  work_orders:
+    index:
+      title: "Órdenes de trabajo"
+      subtitle: "Recepción y diagnóstico inteligente de vehículos"
+      new_button: "Nueva OT"
+      empty:
+        message: "Aún no hay órdenes de trabajo registradas."
+        cta: "Crear la primera"
+    new:
+      title: "Nueva Orden de Trabajo"
+      subtitle: "Registrá los datos del vehículo. La IA analizará el motivo después de guardar."
+      back: "← Volver"
+    show:
+      back_to_list: "← Volver al listado"
+      mileage_unit: "km"
+      vehicle_heading: "Vehículo"
+      entered_at_heading: "Ingresada"
+      reason_heading: "Motivo de ingreso"
+      photos_heading:
+        one: "Fotos (%{count})"
+        other: "Fotos (%{count})"
+      ai_analysis_heading: "Análisis IA"
+      ai_analysis_existing: "(Análisis ya generado — UI viene en la siguiente fase)"
+      ai_analysis_pending: "Pendiente. Se generará automáticamente cuando se conecte el agente en la siguiente fase."
+    form:
+      patente_placeholder: "Ej: ABCD-12"
+      reason_placeholder: "Ej: Vehículo tirita en ralentí y prende la luz de check engine al acelerar"
+      reason_hint: "Describí los síntomas con tus propias palabras. La IA va a usar este texto para diagnosticar."
+      photos_hint: "Adjuntá fotos de daños visibles, tablero o cualquier detalle relevante."
+      errors_heading:
+        one: "Se encontró %{count} error:"
+        other: "Se encontraron %{count} errores:"
+      cancel: "Cancelar"
+    create:
+      success: "Orden de trabajo creada correctamente."
+
+  activerecord:
+    attributes:
+      work_order:
+        patente: "Patente"
+        customer_name: "Nombre del cliente"
+        mileage: "Kilometraje"
+        reason: "Motivo de ingreso"
+        priority: "Prioridad"
+        photos: "Fotos"
+        created_at: "Ingresada"
+      vehicle:
+        patente: "Patente"
+        make: "Marca"
+        model: "Modelo"
+        year: "Año"
+    errors:
+      models:
+        work_order:
+          attributes:
+            patente:
+              blank: "no puede estar vacía"
+
+  enums:
+    work_order:
+      priority:
+        low: "Baja"
+        medium: "Media"
+        high: "Alta"
+        critical: "Crítica"
+      status:
+        draft: "Borrador"
+        analyzing: "Analizando"
+        analyzed: "Analizado"
+        in_review: "En revisión"
