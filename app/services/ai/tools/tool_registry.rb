@@ -5,10 +5,12 @@ module Ai
     #
     # Each tool class must inherit from Ai::Tools::BaseTool.
     module ToolRegistry
-      # Tools are added in subsequent commits:
-      #   - RespondWithAnalysis (Commit 3) — forced structured final output
-      #   - GetVehicleHistory   (Commit 4) — historical context per patente
-      TOOLS = [].freeze
+      # Tools that the agent can call. Order is significant only for clarity
+      # in the OpenAI tools array (the model can pick any of them).
+      TOOLS = [
+        Ai::Tools::RespondWithAnalysis
+        # GetVehicleHistory lands in commit 4
+      ].freeze
 
       class << self
         # Schemas in the OpenAI native format (for now).
