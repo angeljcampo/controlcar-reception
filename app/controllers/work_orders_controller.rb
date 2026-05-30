@@ -1,5 +1,5 @@
 class WorkOrdersController < ApplicationController
-  before_action :set_work_order, only: :show
+  before_action :set_work_order, only: %i[show reanalyze]
 
   def index
     @work_orders = WorkOrder
@@ -23,6 +23,12 @@ class WorkOrdersController < ApplicationController
     else
       render :new, status: :unprocessable_entity
     end
+  end
+
+  def reanalyze
+    @work_order.update!(status: "analyzing")
+    AnalyzeWorkOrderJob.perform_later(@work_order.id)
+    redirect_to @work_order, notice: t(".queued")
   end
 
   private

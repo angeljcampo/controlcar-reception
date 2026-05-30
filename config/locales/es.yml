@@ -85,7 +85,9 @@ es:
         one: "Fotos (%{count})"
         other: "Fotos (%{count})"
       ai_analysis_heading: "Análisis IA"
-      ai_analysis_pending: "Pendiente. Se generará automáticamente cuando se conecte el agente."
+      ai_analysis_pending: "Pendiente. Se generará automáticamente cuando se cree la orden."
+      ai_analysis_in_progress: "Analizando con IA, esto toma unos segundos..."
+      reanalyze_button: "Re-analizar"
     # Strings consumidas por app/views/work_orders/_ai_analysis.html.erb.
     # Rails lazy lookup en partials usa `work_orders.ai_analysis.<key>`.
     ai_analysis:
@@ -113,7 +115,9 @@ es:
         other: "Se encontraron %{count} errores:"
       cancel: "Cancelar"
     create:
-      success: "Orden de trabajo creada correctamente."
+      success: "Orden de trabajo creada correctamente. Iniciando análisis con IA."
+    reanalyze:
+      queued: "Re-análisis encolado. Los resultados van a aparecer acá en unos segundos."
 
   activerecord:
     attributes:

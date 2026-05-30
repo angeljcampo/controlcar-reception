@@ -58,12 +58,19 @@
     <% end %>
 
     <div class="px-6 py-5 bg-zinc-50">
-      <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-3"><%= t(".ai_analysis_heading") %></h2>
-      <% if @work_order.ai_analysis %>
-        <%= render "ai_analysis", work_order: @work_order %>
-      <% else %>
-        <p class="text-sm text-zinc-600 italic"><%= t(".ai_analysis_pending") %></p>
-      <% end %>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide"><%= t(".ai_analysis_heading") %></h2>
+        <% if @work_order.analyzed? && @work_order.ai_analysis %>
+          <%= button_to t(".reanalyze_button"),
+                        reanalyze_work_order_path(@work_order),
+                        method: :post,
+                        class: "text-xs text-indigo-600 hover:text-indigo-700 font-medium",
+                        form: { class: "inline" } %>
+        <% end %>
+      </div>
+
+      <%= turbo_stream_from @work_order %>
+      <%= render "ai_analysis_state", work_order: @work_order %>
     </div>
   </div>
 </div>

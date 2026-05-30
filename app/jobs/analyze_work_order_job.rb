@@ -16,7 +16,8 @@ class AnalyzeWorkOrderJob < ApplicationJob
   # @param work_order_id [Integer]
   def perform(work_order_id)
     work_order = WorkOrder.find(work_order_id)
-    work_order.update!(status: "analyzing")
+    work_order.update!(status: "analyzing") unless work_order.analyzing?
+    broadcast_state(work_order)
 
     analysis_args = run_agent(work_order)
 
@@ -24,11 +25,12 @@ class AnalyzeWorkOrderJob < ApplicationJob
       persist_analysis(work_order, analysis_args)
       work_order.update!(status: "analyzed")
     end
+    broadcast_state(work_order.reload)
   rescue => e
     # Roll the WorkOrder back to draft so the UI shows it as not-analyzed.
-    # The full error trail (stack, retries) is in the AgentRun row and the
-    # Sidekiq retry tab.
+    # Full error trail lives in the AgentRun row + Sidekiq retry tab.
     work_order&.update(status: "draft")
+    broadcast_state(work_order.reload) if work_order
     raise
   end
 
@@ -56,5 +58,17 @@ class AnalyzeWorkOrderJob < ApplicationJob
       observations:          args[:observations]
     )
     analysis.save!
+  end
+
+  # Push the current analysis UI to the WorkOrder's Turbo Stream channel.
+  # The show page subscribes via `turbo_stream_from @work_order`, so any
+  # connected browser updates without a page reload.
+  def broadcast_state(work_order)
+    Turbo::StreamsChannel.broadcast_replace_to(
+      work_order,
+      target:  ActionView::RecordIdentifier.dom_id(work_order, :analysis),
+      partial: "work_orders/ai_analysis_state",
+      locals:  { work_order: work_order }
+    )
   end
 end

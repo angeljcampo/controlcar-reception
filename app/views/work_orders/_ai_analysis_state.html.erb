@@ -1,0 +1,21 @@
+<%# State-aware container for the AI analysis section. Wrapped in a div
+    with a stable ID so the AnalyzeWorkOrderJob can broadcast updates to
+    it via Turbo Streams without a page refresh. %>
+<div id="<%= dom_id(work_order, :analysis) %>">
+  <% case work_order.status %>
+  <% when "analyzing" %>
+    <div class="flex items-center space-x-2 text-sm text-zinc-600">
+      <svg class="animate-spin h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+      <span><%= t("work_orders.show.ai_analysis_in_progress") %></span>
+    </div>
+  <% else %>
+    <% if work_order.ai_analysis %>
+      <%= render "ai_analysis", work_order: work_order %>
+    <% else %>
+      <p class="text-sm text-zinc-600 italic"><%= t("work_orders.show.ai_analysis_pending") %></p>
+    <% end %>
+  <% end %>
+</div>

@@ -21,7 +21,9 @@ module WorkOrders
       vehicle = Vehicle.find_or_create_by!(patente: @patente)
       @work_order = vehicle.work_orders.new(@attrs)
       @work_order.patente = @patente
-      @work_order.save
+
+      enqueue_analysis if @work_order.save
+
       self
     end
 
@@ -30,5 +32,12 @@ module WorkOrders
     private
 
     def normalize_patente(raw) = raw.to_s.upcase.gsub(/\s+/, "").presence
+
+    # Flip to "analyzing" and queue the AI analysis. Done synchronously
+    # so the show page renders the spinner immediately on redirect.
+    def enqueue_analysis
+      @work_order.update!(status: "analyzing")
+      AnalyzeWorkOrderJob.perform_later(@work_order.id)
+    end
   end
 end
