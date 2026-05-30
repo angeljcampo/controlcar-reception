@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <title><%= content_for(:title) || "Controlcar — Recepción Inteligente" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="bg-zinc-50 min-h-screen text-zinc-900 antialiased">
+    <nav class="bg-white border-b border-zinc-200 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <%= link_to root_path, class: "flex items-center space-x-2 text-zinc-900 hover:text-indigo-600 transition" do %>
+          <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">CC</div>
+          <span class="font-semibold text-lg">Controlcar</span>
+          <span class="hidden sm:inline text-zinc-400 text-sm">/ Recepción Inteligente</span>
+        <% end %>
+
+        <div class="flex items-center space-x-1 text-sm">
+          <%= link_to "Órdenes", work_orders_path, class: "px-3 py-2 rounded-md text-zinc-700 hover:bg-zinc-100 transition" %>
+          <%= link_to "Sidekiq", "/sidekiq", target: "_blank", rel: "noopener", class: "px-3 py-2 rounded-md text-zinc-500 hover:bg-zinc-100 transition" %>
+        </div>
+      </div>
+    </nav>
+
+    <% if flash[:notice] || flash[:alert] %>
+      <div class="max-w-5xl mx-auto px-4 mt-4">
+        <% if flash[:notice] %>
+          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md px-4 py-3 text-sm">
+            <%= flash[:notice] %>
+          </div>
+        <% end %>
+        <% if flash[:alert] %>
+          <div class="bg-red-50 border border-red-200 text-red-800 rounded-md px-4 py-3 text-sm">
+            <%= flash[:alert] %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <main>
+      <%= yield %>
+    </main>
+  </body>
+</html>
