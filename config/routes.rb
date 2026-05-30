@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   # Health check endpoint usado por Render para verificar que el container responde.
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Defines the root path route ("/")
-  # root "work_orders#index"  # se habilita cuando exista el controller
+  resources :work_orders, only: %i[index new create show]
+
+  root "work_orders#index"
 end
