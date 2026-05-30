@@ -19,7 +19,7 @@ class WorkOrdersController < ApplicationController
     @work_order = result.work_order
 
     if result.success?
-      redirect_to @work_order, notice: "Orden de trabajo creada correctamente."
+      redirect_to @work_order, notice: t(".success")
     else
       render :new, status: :unprocessable_entity
     end

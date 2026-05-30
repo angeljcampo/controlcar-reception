@@ -1,18 +1,18 @@
 <div class="max-w-5xl mx-auto px-4 py-8">
   <div class="flex items-center justify-between mb-8">
     <div>
-      <h1 class="text-2xl font-semibold text-zinc-900">Órdenes de trabajo</h1>
-      <p class="text-sm text-zinc-500 mt-1">Recepción y diagnóstico inteligente de vehículos</p>
+      <h1 class="text-2xl font-semibold text-zinc-900"><%= t(".title") %></h1>
+      <p class="text-sm text-zinc-500 mt-1"><%= t(".subtitle") %></p>
     </div>
-    <%= link_to "Nueva OT",
+    <%= link_to t(".new_button"),
                 new_work_order_path,
                 class: "inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm" %>
   </div>
 
   <% if @work_orders.empty? %>
     <div class="bg-white rounded-lg border border-zinc-200 p-12 text-center">
-      <p class="text-zinc-500">Aún no hay órdenes de trabajo registradas.</p>
-      <%= link_to "Crear la primera",
+      <p class="text-zinc-500"><%= t(".empty.message") %></p>
+      <%= link_to t(".empty.cta"),
                   new_work_order_path,
                   class: "inline-block mt-4 text-indigo-600 hover:text-indigo-700 font-medium" %>
     </div>
@@ -29,7 +29,7 @@
           <p class="text-sm text-zinc-500 line-clamp-2 mb-3"><%= wo.reason %></p>
           <div class="flex items-center justify-between text-xs text-zinc-400">
             <%= priority_badge(wo) %>
-            <span><%= l(wo.created_at, format: :short) rescue wo.created_at.strftime("%d/%m %H:%M") %></span>
+            <span><%= l(wo.created_at, format: :short) %></span>
           </div>
         <% end %>
       <% end %>

@@ -1,6 +1,6 @@
 <div class="max-w-4xl mx-auto px-4 py-8">
   <div class="mb-6">
-    <%= link_to "← Volver al listado", work_orders_path, class: "text-sm text-zinc-500 hover:text-zinc-700" %>
+    <%= link_to t(".back_to_list"), work_orders_path, class: "text-sm text-zinc-500 hover:text-zinc-700" %>
   </div>
 
   <div class="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
@@ -17,19 +17,19 @@
 
     <dl class="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm border-b border-zinc-200">
       <div>
-        <dt class="text-zinc-500">Kilometraje</dt>
+        <dt class="text-zinc-500"><%= WorkOrder.human_attribute_name(:mileage) %></dt>
         <dd class="text-zinc-900 font-medium mt-1">
-          <%= @work_order.mileage ? "#{number_with_delimiter(@work_order.mileage)} km" : "—" %>
+          <%= @work_order.mileage ? "#{number_with_delimiter(@work_order.mileage)} #{t('.mileage_unit')}" : "—" %>
         </dd>
       </div>
       <div>
-        <dt class="text-zinc-500">Ingresada</dt>
+        <dt class="text-zinc-500"><%= t(".entered_at_heading") %></dt>
         <dd class="text-zinc-900 font-medium mt-1">
-          <%= @work_order.created_at.strftime("%d/%m/%Y %H:%M") %>
+          <%= l(@work_order.created_at, format: :default) %>
         </dd>
       </div>
       <div>
-        <dt class="text-zinc-500">Vehículo</dt>
+        <dt class="text-zinc-500"><%= t(".vehicle_heading") %></dt>
         <dd class="text-zinc-900 font-medium mt-1">
           <%= [@work_order.vehicle.make, @work_order.vehicle.model, @work_order.vehicle.year].compact.join(" ").presence || "—" %>
         </dd>
@@ -37,14 +37,14 @@
     </dl>
 
     <div class="px-6 py-5 border-b border-zinc-200">
-      <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-2">Motivo de ingreso</h2>
+      <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-2"><%= t(".reason_heading") %></h2>
       <p class="text-zinc-900 whitespace-pre-wrap"><%= @work_order.reason %></p>
     </div>
 
     <% if @work_order.photos.attached? %>
       <div class="px-6 py-5 border-b border-zinc-200">
         <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-3">
-          Fotos (<%= @work_order.photos.count %>)
+          <%= t(".photos_heading", count: @work_order.photos.count) %>
         </h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           <% @work_order.photos.each do |photo| %>
@@ -58,11 +58,11 @@
     <% end %>
 
     <div class="px-6 py-5 bg-zinc-50">
-      <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-2">Análisis IA</h2>
+      <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-2"><%= t(".ai_analysis_heading") %></h2>
       <% if @work_order.ai_analysis %>
-        <p class="text-sm text-zinc-600">(Análisis ya generado — UI viene en la siguiente fase)</p>
+        <p class="text-sm text-zinc-600"><%= t(".ai_analysis_existing") %></p>
       <% else %>
-        <p class="text-sm text-zinc-600 italic">Pendiente. Se generará automáticamente cuando se conecte el agente en la siguiente fase.</p>
+        <p class="text-sm text-zinc-600 italic"><%= t(".ai_analysis_pending") %></p>
       <% end %>
     </div>
   </div>

@@ -12,7 +12,9 @@ module WorkOrders
     def call
       if @patente.blank?
         @work_order = WorkOrder.new(@attrs)
-        @work_order.errors.add(:patente, "no puede estar vacía")
+        # :blank resolves to I18n key activerecord.errors.models.work_order
+        # .attributes.patente.blank ("no puede estar vacía") via the locale.
+        @work_order.errors.add(:patente, :blank)
         return self
       end
 
