@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="<%= I18n.locale %>">
   <head>
-    <title><%= content_for(:title) || "Controlcar — Recepción Inteligente" %></title>
+    <title><%= content_for(:title) || t(".full_title") %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -23,13 +23,13 @@
       <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <%= link_to root_path, class: "flex items-center space-x-2 text-zinc-900 hover:text-indigo-600 transition" do %>
           <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">CC</div>
-          <span class="font-semibold text-lg">Controlcar</span>
-          <span class="hidden sm:inline text-zinc-400 text-sm">/ Recepción Inteligente</span>
+          <span class="font-semibold text-lg"><%= t(".app_short") %></span>
+          <span class="hidden sm:inline text-zinc-400 text-sm"><%= t(".app_tagline") %></span>
         <% end %>
 
         <div class="flex items-center space-x-1 text-sm">
-          <%= link_to "Órdenes", work_orders_path, class: "px-3 py-2 rounded-md text-zinc-700 hover:bg-zinc-100 transition" %>
-          <%= link_to "Sidekiq", "/sidekiq", target: "_blank", rel: "noopener", class: "px-3 py-2 rounded-md text-zinc-500 hover:bg-zinc-100 transition" %>
+          <%= link_to t(".nav.work_orders"), work_orders_path, class: "px-3 py-2 rounded-md text-zinc-700 hover:bg-zinc-100 transition" %>
+          <%= link_to t(".nav.sidekiq"), "/sidekiq", target: "_blank", rel: "noopener", class: "px-3 py-2 rounded-md text-zinc-500 hover:bg-zinc-100 transition" %>
         </div>
       </div>
     </nav>
