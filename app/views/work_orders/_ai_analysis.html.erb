@@ -1,0 +1,126 @@
+<%# Renders the structured AI analysis for a WorkOrder.
+    Expects `work_order` to be passed; it must have a persisted ai_analysis. %>
+<% analysis = work_order.ai_analysis %>
+
+<div class="space-y-5">
+  <%# Header: category + suggested priority %>
+  <div class="flex items-start justify-between flex-wrap gap-3">
+    <div class="flex items-center space-x-2">
+      <span class="text-sm text-zinc-500"><%= t(".category_label") %>:</span>
+      <%= category_badge(analysis) %>
+    </div>
+    <div class="flex items-center space-x-2">
+      <span class="text-sm text-zinc-500"><%= t(".suggested_priority_label") %>:</span>
+      <%= priority_badge_for(analysis.suggested_priority) %>
+    </div>
+  </div>
+
+  <%# Priority reason %>
+  <% if analysis.priority_reason.present? %>
+    <p class="text-sm text-zinc-700 italic">
+      <span class="text-zinc-500"><%= t(".priority_reason_label") %>:</span>
+      <%= analysis.priority_reason %>
+    </p>
+  <% end %>
+
+  <%# Confidence bar %>
+  <div>
+    <div class="flex items-center justify-between text-sm mb-1">
+      <span class="text-zinc-500"><%= t(".confidence_label") %></span>
+      <span class="font-medium text-zinc-900"><%= confidence_percentage(analysis) %>%</span>
+    </div>
+    <div class="w-full bg-zinc-200 rounded-full h-2 overflow-hidden">
+      <div class="<%= confidence_bar_color(analysis) %> h-2 rounded-full transition-all"
+           style="width: <%= confidence_percentage(analysis) %>%"></div>
+    </div>
+  </div>
+
+  <%# Human review banner %>
+  <% if analysis.requires_human_review %>
+    <div class="bg-amber-50 border border-amber-200 rounded-md p-3 flex items-start space-x-2">
+      <span class="text-amber-600 text-lg leading-none">⚠</span>
+      <div>
+        <p class="text-sm font-medium text-amber-900"><%= t(".review_banner_title") %></p>
+        <p class="text-xs text-amber-800 mt-0.5"><%= t(".review_banner_text") %></p>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Possible failures %>
+  <% if analysis.possible_failures.present? && analysis.possible_failures.any? %>
+    <div>
+      <h4 class="text-sm font-medium text-zinc-700 mb-2"><%= t(".possible_failures_heading") %></h4>
+      <ol class="space-y-2">
+        <% analysis.possible_failures.each_with_index do |failure, i| %>
+          <li class="bg-white border border-zinc-200 rounded-md p-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm font-medium text-zinc-900">
+                <%= i + 1 %>. <%= failure["component"] %>
+              </span>
+              <%= probability_badge(failure["probability"]) %>
+            </div>
+            <% if failure["reasoning"].present? %>
+              <p class="text-xs text-zinc-600"><%= failure["reasoning"] %></p>
+            <% end %>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+  <% end %>
+
+  <%# Next steps %>
+  <% if analysis.next_steps.present? && analysis.next_steps.any? %>
+    <div>
+      <h4 class="text-sm font-medium text-zinc-700 mb-2"><%= t(".next_steps_heading") %></h4>
+      <ol class="space-y-1.5">
+        <% analysis.next_steps.sort_by { |s| s["order"].to_i }.each do |step| %>
+          <li class="flex items-start space-x-2 text-sm">
+            <span class="flex-shrink-0 w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-medium flex items-center justify-center mt-0.5"><%= step["order"] %></span>
+            <div class="flex-1">
+              <span class="text-zinc-900"><%= step["action"] %></span>
+              <% if step["required_tool"].present? %>
+                <span class="text-zinc-500 text-xs">(<%= t(".required_tool_prefix") %>: <%= step["required_tool"] %>)</span>
+              <% end %>
+            </div>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+  <% end %>
+
+  <%# Sources (RAG citations — empty until Phase 3) %>
+  <% if analysis.sources.present? && analysis.sources.any? %>
+    <div>
+      <h4 class="text-sm font-medium text-zinc-700 mb-2"><%= t(".sources_heading") %></h4>
+      <ul class="space-y-1.5">
+        <% analysis.sources.each do |source| %>
+          <li class="text-xs bg-white border border-zinc-200 rounded-md p-2">
+            <span class="font-medium text-zinc-700"><%= source["document_title"] %></span>
+            <span class="text-zinc-500">· pág. <%= source["page"] %></span>
+            <% if source["relevant_excerpt"].present? %>
+              <p class="text-zinc-600 mt-1 italic">"<%= source["relevant_excerpt"] %>"</p>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%# Observations %>
+  <% if analysis.observations.present? %>
+    <div>
+      <h4 class="text-sm font-medium text-zinc-700 mb-1"><%= t(".observations_heading") %></h4>
+      <p class="text-sm text-zinc-700"><%= analysis.observations %></p>
+    </div>
+  <% end %>
+
+  <%# Footer: model + tokens + cost + latency %>
+  <% if (run = work_order.latest_agent_run) %>
+    <div class="border-t border-zinc-200 pt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-400">
+      <span><%= t(".footer_model") %>: <%= run.ai_model %></span>
+      <span><%= (run.input_tokens.to_i + run.output_tokens.to_i) %> <%= t(".footer_tokens") %></span>
+      <span><%= format_cents(run.cost_cents) %></span>
+      <span><%= run.latency_ms %> <%= t(".footer_latency") %></span>
+    </div>
+  <% end %>
+</div>

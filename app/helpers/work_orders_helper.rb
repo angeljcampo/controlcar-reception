@@ -14,17 +14,21 @@ module WorkOrdersHelper
   }.freeze
 
   def priority_badge(work_order)
-    badge(work_order.priority_label, PRIORITY_CLASSES[work_order.priority])
+    ui_badge(work_order.priority_label, PRIORITY_CLASSES[work_order.priority])
   end
 
   def status_badge(work_order)
-    badge(work_order.status_label, STATUS_CLASSES[work_order.status])
+    ui_badge(work_order.status_label, STATUS_CLASSES[work_order.status])
   end
 
-  private
+  # Used by the AI analysis partial: renders a priority badge from a raw
+  # string value (e.g. AiAnalysis#suggested_priority) without needing a
+  # WorkOrder instance.
+  def priority_badge_for(priority_value)
+    return nil if priority_value.blank?
 
-  def badge(text, color_classes)
-    tag.span(text,
-             class: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium #{color_classes}")
+    label = I18n.t("enums.work_order.priority.#{priority_value}",
+                   default: priority_value.to_s.humanize)
+    ui_badge(label, PRIORITY_CLASSES.fetch(priority_value, "bg-zinc-100 text-zinc-700"))
   end
 end

@@ -58,9 +58,9 @@
     <% end %>
 
     <div class="px-6 py-5 bg-zinc-50">
-      <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-2"><%= t(".ai_analysis_heading") %></h2>
+      <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-3"><%= t(".ai_analysis_heading") %></h2>
       <% if @work_order.ai_analysis %>
-        <p class="text-sm text-zinc-600"><%= t(".ai_analysis_existing") %></p>
+        <%= render "ai_analysis", work_order: @work_order %>
       <% else %>
         <p class="text-sm text-zinc-600 italic"><%= t(".ai_analysis_pending") %></p>
       <% end %>

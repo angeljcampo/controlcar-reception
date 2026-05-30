@@ -85,8 +85,24 @@ es:
         one: "Fotos (%{count})"
         other: "Fotos (%{count})"
       ai_analysis_heading: "Análisis IA"
-      ai_analysis_existing: "(Análisis ya generado — UI viene en la siguiente fase)"
-      ai_analysis_pending: "Pendiente. Se generará automáticamente cuando se conecte el agente en la siguiente fase."
+      ai_analysis_pending: "Pendiente. Se generará automáticamente cuando se conecte el agente."
+    # Strings consumidas por app/views/work_orders/_ai_analysis.html.erb.
+    # Rails lazy lookup en partials usa `work_orders.ai_analysis.<key>`.
+    ai_analysis:
+      category_label: "Categoría"
+      suggested_priority_label: "Prioridad sugerida"
+      priority_reason_label: "Razón"
+      confidence_label: "Confianza"
+      review_banner_title: "Revisión humana sugerida"
+      review_banner_text: "Los síntomas son ambiguos o la confianza es baja. Conviene que un mecánico revise antes de actuar."
+      possible_failures_heading: "Posibles fallas"
+      next_steps_heading: "Próximos pasos"
+      required_tool_prefix: "con"
+      sources_heading: "Fuentes consultadas"
+      observations_heading: "Observaciones"
+      footer_model: "Modelo"
+      footer_tokens: "tokens"
+      footer_latency: "ms"
     form:
       patente_placeholder: "Ej: ABCD-12"
       reason_placeholder: "Ej: Vehículo tirita en ralentí y prende la luz de check engine al acelerar"
@@ -133,3 +149,21 @@ es:
         analyzing: "Analizando"
         analyzed: "Analizado"
         in_review: "En revisión"
+    ai_analysis:
+      category:
+        engine: "Motor"
+        transmission: "Transmisión"
+        brakes: "Frenos"
+        suspension: "Suspensión"
+        electrical: "Sistema eléctrico"
+        cooling: "Refrigeración"
+        fuel: "Combustible"
+        exhaust: "Escape"
+        tires: "Neumáticos"
+        body: "Carrocería"
+        diagnosis_needed: "Diagnóstico necesario"
+        other: "Otro"
+      probability:
+        high: "Alta"
+        medium: "Media"
+        low: "Baja"
