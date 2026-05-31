@@ -8,7 +8,11 @@ module Ai
     #   Render (prod):      configure in the service's env vars.
     class OpenAIProvider < BaseProvider
       MODEL = "gpt-5".freeze
-      DEFAULT_MAX_TOKENS = 4096
+
+      # GPT-5 (and o-family reasoning models) reject the legacy max_tokens
+      # parameter; max_completion_tokens replaces it and is accepted by all
+      # current chat models.
+      DEFAULT_MAX_COMPLETION_TOKENS = 4096
 
       class MissingApiKey < StandardError; end
       class ApiError < StandardError; end
@@ -27,17 +31,24 @@ module Ai
       def call(system:, messages:, tools:)
         api_response = @client.chat(
           parameters: {
-            model:       @model,
-            messages:    [{ role: "system", content: system }, *messages],
-            tools:       tools,
-            tool_choice: "auto",
-            max_tokens:  DEFAULT_MAX_TOKENS
+            model:                  @model,
+            messages:               [{ role: "system", content: system }, *messages],
+            tools:                  tools,
+            tool_choice:            "auto",
+            max_completion_tokens:  DEFAULT_MAX_COMPLETION_TOKENS
           }
         )
 
+        # Defensive: some integration shapes return a 200 with an error key.
         raise ApiError, api_response["error"]["message"] if api_response["error"]
 
         build_response(api_response)
+      rescue Faraday::Error => e
+        # ruby-openai raises Faraday::Error subclasses on 4xx/5xx. The default
+        # message is just "status 4xx", which buries the actual API problem
+        # (wrong param, model not allowed, etc.). Pull the JSON body out so
+        # the AgentRun row records a useful error.
+        raise ApiError, format_faraday_error(e)
       end
 
       # OpenAI's wire format for sending tool results back:
@@ -122,6 +133,23 @@ module Ai
         when "stop"       then :end_turn
         when "length"     then :max_tokens
         else                   finish_reason&.to_sym
+        end
+      end
+
+      # Pulls the actual OpenAI error message out of a Faraday error response
+      # body. Falls back to the raw body if the JSON shape isn't what we expect.
+      def format_faraday_error(faraday_error)
+        response = faraday_error.respond_to?(:response) ? faraday_error.response : nil
+        status   = response&.dig(:status)
+        body     = response&.dig(:body)
+        api_msg  = body.is_a?(Hash) ? body.dig("error", "message") : nil
+
+        if api_msg
+          "OpenAI #{status}: #{api_msg}"
+        elsif body
+          "OpenAI #{status}: #{body.inspect[0, 300]}"
+        else
+          faraday_error.message
         end
       end
     end
