@@ -109,6 +109,12 @@ es:
       footer_model: "Modelo"
       footer_tokens: "tokens"
       footer_latency: "ms"
+    stats_strip:
+      tokens: "tokens consumidos"
+      runs:
+        one: "corrida"
+        other: "corridas"
+      last_run: "Última"
     form:
       patente_placeholder: "Ej: ABCD-12"
       reason_placeholder: "Ej: Vehículo tirita en ralentí y prende la luz de check engine al acelerar"

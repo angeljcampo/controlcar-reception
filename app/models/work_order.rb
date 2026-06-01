@@ -29,4 +29,18 @@ class WorkOrder < ApplicationRecord
   def latest_agent_run
     agent_runs.order(created_at: :desc).first
   end
+
+  # Aggregated AI usage stats across every AnalyzeWorkOrderJob attempt for
+  # this OT. Powers the stats strip on the show view.
+  def ai_total_tokens
+    agent_runs.sum("COALESCE(input_tokens, 0) + COALESCE(output_tokens, 0)")
+  end
+
+  def ai_total_cost_cents
+    agent_runs.sum(:cost_cents).to_i
+  end
+
+  def last_agent_run_at
+    agent_runs.maximum(:created_at)
+  end
 end

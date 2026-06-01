@@ -2,40 +2,54 @@
     Expects `work_order` to be passed; it must have a persisted ai_analysis. %>
 <% analysis = work_order.ai_analysis %>
 
-<div class="space-y-5">
-  <%# Header: category + suggested priority %>
-  <div class="flex items-start justify-between flex-wrap gap-3">
-    <div class="flex items-center space-x-2">
-      <span class="text-sm text-zinc-500"><%= t(".category_label") %>:</span>
-      <%= category_badge(analysis) %>
+<div class="space-y-6">
+  <%# ── Hero: category icon + name + confidence ring ─────────────── %>
+  <div class="flex items-start justify-between gap-5 flex-wrap">
+    <div class="flex items-start space-x-4 flex-1 min-w-0">
+      <div class="w-16 h-16 rounded-2xl <%= category_tile_bg(analysis.category) %> flex items-center justify-center text-3xl flex-shrink-0 shadow-sm">
+        <%= category_icon(analysis.category) %>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs text-zinc-500 uppercase tracking-wide font-medium"><%= t(".category_label") %></div>
+        <div class="text-xl font-semibold text-zinc-900 leading-tight"><%= category_label(analysis.category) %></div>
+        <div class="flex items-center space-x-2 mt-2">
+          <span class="text-xs text-zinc-500"><%= t(".suggested_priority_label") %>:</span>
+          <%= priority_badge_for(analysis.suggested_priority) %>
+        </div>
+      </div>
     </div>
-    <div class="flex items-center space-x-2">
-      <span class="text-sm text-zinc-500"><%= t(".suggested_priority_label") %>:</span>
-      <%= priority_badge_for(analysis.suggested_priority) %>
-    </div>
+
+    <%# Confidence ring: animated SVG that fills based on confidence value.
+        Uses stroke-dasharray + stroke-dashoffset to draw partial arc. %>
+    <% if analysis.confidence.present? %>
+      <% radius = 36 %>
+      <% circumference = (2 * Math::PI * radius).round(2) %>
+      <% offset = (circumference * (1 - analysis.confidence.to_f)).round(2) %>
+      <div class="relative w-24 h-24 flex-shrink-0">
+        <svg viewBox="0 0 80 80" class="w-full h-full -rotate-90">
+          <circle cx="40" cy="40" r="<%= radius %>" fill="none" class="stroke-zinc-200" stroke-width="6"/>
+          <circle cx="40" cy="40" r="<%= radius %>" fill="none"
+                  class="<%= confidence_stroke_class(analysis) %> transition-all duration-700"
+                  stroke-width="6" stroke-linecap="round"
+                  stroke-dasharray="<%= circumference %>"
+                  stroke-dashoffset="<%= offset %>"/>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-xl font-bold text-zinc-900"><%= confidence_percentage(analysis) %>%</span>
+          <span class="text-[10px] text-zinc-400 uppercase tracking-wide leading-none mt-0.5"><%= t(".confidence_label") %></span>
+        </div>
+      </div>
+    <% end %>
   </div>
 
-  <%# Priority reason %>
+  <%# ── Priority reason (italic, full-width) ─────────────────────── %>
   <% if analysis.priority_reason.present? %>
-    <p class="text-sm text-zinc-700 italic">
-      <span class="text-zinc-500"><%= t(".priority_reason_label") %>:</span>
+    <p class="text-sm text-zinc-700 italic border-l-2 border-zinc-300 pl-3">
       <%= analysis.priority_reason %>
     </p>
   <% end %>
 
-  <%# Confidence bar %>
-  <div>
-    <div class="flex items-center justify-between text-sm mb-1">
-      <span class="text-zinc-500"><%= t(".confidence_label") %></span>
-      <span class="font-medium text-zinc-900"><%= confidence_percentage(analysis) %>%</span>
-    </div>
-    <div class="w-full bg-zinc-200 rounded-full h-2 overflow-hidden">
-      <div class="<%= confidence_bar_color(analysis) %> h-2 rounded-full transition-all"
-           style="width: <%= confidence_percentage(analysis) %>%"></div>
-    </div>
-  </div>
-
-  <%# Human review banner %>
+  <%# ── Human-review banner ──────────────────────────────────────── %>
   <% if analysis.requires_human_review %>
     <div class="bg-amber-50 border border-amber-200 rounded-md p-3 flex items-start space-x-2">
       <span class="text-amber-600 text-lg leading-none">⚠</span>
@@ -46,13 +60,13 @@
     </div>
   <% end %>
 
-  <%# Possible failures %>
+  <%# ── Possible failures ────────────────────────────────────────── %>
   <% if analysis.possible_failures.present? && analysis.possible_failures.any? %>
     <div>
       <h4 class="text-sm font-medium text-zinc-700 mb-2"><%= t(".possible_failures_heading") %></h4>
       <ol class="space-y-2">
         <% analysis.possible_failures.each_with_index do |failure, i| %>
-          <li class="bg-white border border-zinc-200 rounded-md p-3">
+          <li class="bg-white border border-zinc-200 rounded-md p-3 hover:border-zinc-300 transition">
             <div class="flex items-center justify-between mb-1">
               <span class="text-sm font-medium text-zinc-900">
                 <%= i + 1 %>. <%= failure["component"] %>
@@ -68,7 +82,7 @@
     </div>
   <% end %>
 
-  <%# Next steps %>
+  <%# ── Next steps ───────────────────────────────────────────────── %>
   <% if analysis.next_steps.present? && analysis.next_steps.any? %>
     <div>
       <h4 class="text-sm font-medium text-zinc-700 mb-2"><%= t(".next_steps_heading") %></h4>
@@ -88,7 +102,7 @@
     </div>
   <% end %>
 
-  <%# Sources (RAG citations — empty until Phase 3) %>
+  <%# ── Sources (RAG citations, empty until Phase 3) ─────────────── %>
   <% if analysis.sources.present? && analysis.sources.any? %>
     <div>
       <h4 class="text-sm font-medium text-zinc-700 mb-2"><%= t(".sources_heading") %></h4>
@@ -106,7 +120,7 @@
     </div>
   <% end %>
 
-  <%# Observations %>
+  <%# ── Observations ─────────────────────────────────────────────── %>
   <% if analysis.observations.present? %>
     <div>
       <h4 class="text-sm font-medium text-zinc-700 mb-1"><%= t(".observations_heading") %></h4>
@@ -114,7 +128,7 @@
     </div>
   <% end %>
 
-  <%# Footer: model + tokens + cost + latency %>
+  <%# ── Footer: latest run only (totals live in the stats strip) ─── %>
   <% if (run = work_order.latest_agent_run) %>
     <div class="border-t border-zinc-200 pt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-400">
       <span><%= t(".footer_model") %>: <%= run.ai_model %></span>

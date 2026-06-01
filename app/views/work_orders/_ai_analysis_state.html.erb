@@ -13,6 +13,7 @@
     </div>
   <% else %>
     <% if work_order.ai_analysis %>
+      <%= render "stats_strip", work_order: work_order %>
       <%= render "ai_analysis", work_order: work_order %>
     <% else %>
       <p class="text-sm text-zinc-600 italic"><%= t("work_orders.show.ai_analysis_pending") %></p>

@@ -14,6 +14,40 @@ module AiAnalysisHelper
     "other"            => "bg-zinc-100 text-zinc-700"
   }.freeze
 
+  # Backgrounds used for the hero category tile (no text color, no border).
+  CATEGORY_TILE_BG = {
+    "engine"           => "bg-orange-100",
+    "transmission"     => "bg-purple-100",
+    "brakes"           => "bg-red-100",
+    "suspension"       => "bg-blue-100",
+    "electrical"       => "bg-yellow-100",
+    "cooling"          => "bg-cyan-100",
+    "fuel"             => "bg-amber-100",
+    "exhaust"          => "bg-gray-100",
+    "tires"            => "bg-zinc-100",
+    "body"             => "bg-pink-100",
+    "diagnosis_needed" => "bg-indigo-100",
+    "other"            => "bg-zinc-100"
+  }.freeze
+
+  # Visual glyph (emoji) per mechanical category. Cheap, expressive, no
+  # image assets needed. Keep the mapping stable so categories are
+  # recognizable across OTs.
+  CATEGORY_ICONS = {
+    "engine"           => "🔧",
+    "transmission"     => "⚙️",
+    "brakes"           => "🛑",
+    "suspension"       => "🚙",
+    "electrical"       => "⚡",
+    "cooling"          => "🌡️",
+    "fuel"             => "⛽",
+    "exhaust"          => "💨",
+    "tires"            => "🛞",
+    "body"             => "🚗",
+    "diagnosis_needed" => "🔍",
+    "other"            => "❓"
+  }.freeze
+
   PROBABILITY_CLASSES = {
     "high"   => "bg-red-50 text-red-700 border border-red-200",
     "medium" => "bg-yellow-50 text-yellow-700 border border-yellow-200",
@@ -24,6 +58,24 @@ module AiAnalysisHelper
     return nil if category.blank?
 
     I18n.t("enums.ai_analysis.category.#{category}", default: category.to_s.humanize)
+  end
+
+  def category_icon(category)
+    CATEGORY_ICONS.fetch(category, "❓")
+  end
+
+  def category_tile_bg(category)
+    CATEGORY_TILE_BG.fetch(category, "bg-zinc-100")
+  end
+
+  # Stroke color for the confidence ring, bucketed the same way as the
+  # old bar (<0.5 red, <0.7 yellow, ≥0.7 emerald).
+  def confidence_stroke_class(analysis)
+    case analysis.confidence.to_f
+    when 0...0.5 then "stroke-red-500"
+    when 0.5...0.7 then "stroke-yellow-500"
+    else "stroke-emerald-500"
+    end
   end
 
   def category_badge(analysis)
