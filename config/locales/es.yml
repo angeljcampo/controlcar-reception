@@ -86,7 +86,8 @@ es:
         other: "Fotos (%{count})"
       ai_analysis_heading: "Análisis IA"
       ai_analysis_pending: "Pendiente. Se generará automáticamente cuando se cree la orden."
-      ai_analysis_in_progress: "Analizando con IA, esto toma unos segundos..."
+      ai_analysis_in_progress: "Analizando con IA"
+      ai_analysis_in_progress_hint: "Buscando historial del vehículo y armando el diagnóstico..."
       reanalyze_button: "Re-analizar"
       agent_runs_toggle:
         one: "%{count} corrida del agente"

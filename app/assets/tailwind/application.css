@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+/* Custom animations layered on top of Tailwind 4's built-ins. Used by the
+   AI analysis section to give the re-analyze transition some life: the
+   analyzing-state spinner pulses softly, and the new analysis fades up
+   into place when the Turbo broadcast replaces the panel. */
+
+@keyframes fade-in-up {
+  0%   { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ring-fill {
+  /* Initial stroke-dashoffset matches a full circle (no progress drawn);
+     animation lerps to whatever inline stroke-dashoffset the SVG has. */
+  0% { stroke-dashoffset: 226.19; }
+}
+
+@utility animate-fade-in-up {
+  animation: fade-in-up 450ms ease-out both;
+}
+
+@utility animate-ring-fill {
+  animation: ring-fill 900ms ease-out;
+}

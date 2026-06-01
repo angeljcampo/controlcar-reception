@@ -17,7 +17,7 @@ class AnalyzeWorkOrderJob < ApplicationJob
   def perform(work_order_id)
     work_order = WorkOrder.find(work_order_id)
     work_order.update!(status: "analyzing") unless work_order.analyzing?
-    broadcast_state(work_order)
+    broadcast_safely(work_order)
 
     analysis_args = run_agent(work_order)
 
@@ -25,12 +25,16 @@ class AnalyzeWorkOrderJob < ApplicationJob
       persist_analysis(work_order, analysis_args)
       work_order.update!(status: "analyzed")
     end
-    broadcast_state(work_order.reload)
+
+    # Post-success broadcast is best-effort. A flaky cable connection
+    # must not undo the successful persistence above, so we swallow
+    # errors here (status stays "analyzed").
+    broadcast_safely(work_order.reload)
   rescue => e
-    # Roll the WorkOrder back to draft so the UI shows it as not-analyzed.
-    # Full error trail lives in the AgentRun row + Sidekiq retry tab.
+    # Real failure path: agent or persistence raised. Roll back to "draft"
+    # so the UI shows the OT as not-analyzed (the user can re-trigger).
     work_order&.update(status: "draft")
-    broadcast_state(work_order.reload) if work_order
+    broadcast_safely(work_order.reload) if work_order
     raise
   end
 
@@ -62,13 +66,16 @@ class AnalyzeWorkOrderJob < ApplicationJob
 
   # Push the current analysis UI to the WorkOrder's Turbo Stream channel.
   # The show page subscribes via `turbo_stream_from @work_order`, so any
-  # connected browser updates without a page reload.
-  def broadcast_state(work_order)
+  # connected browser updates without a page reload. Wrapped in
+  # broadcast_safely so a cable hiccup doesn't propagate as a job error.
+  def broadcast_safely(work_order)
     Turbo::StreamsChannel.broadcast_replace_to(
       work_order,
       target:  ActionView::RecordIdentifier.dom_id(work_order, :analysis),
       partial: "work_orders/ai_analysis_state",
       locals:  { work_order: work_order }
     )
+  rescue => e
+    Rails.logger.warn("[AnalyzeWorkOrderJob] broadcast failed for WO #{work_order.id}: #{e.class}: #{e.message}")
   end
 end
