@@ -60,7 +60,11 @@
     <div class="px-6 py-5 bg-zinc-50">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide"><%= t(".ai_analysis_heading") %></h2>
-        <% if @work_order.analyzed? && @work_order.ai_analysis %>
+        <%# Show the Re-analizar button whenever an analysis is NOT currently running.
+            This covers the cases where the job ran but ended in a rollback ("draft"
+            with an existing AiAnalysis from a previous successful run), so the user
+            can always retry from the UI as long as a job isn't already in flight. %>
+        <% unless @work_order.analyzing? %>
           <%= button_to t(".reanalyze_button"),
                         reanalyze_work_order_path(@work_order),
                         method: :post,
