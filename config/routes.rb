@@ -11,6 +11,11 @@ Rails.application.routes.draw do
     member do
       post :reanalyze
     end
+
+    # Lazy-loaded Turbo Frame panel on the show page. Lists every
+    # AnalyzeWorkOrderJob attempt for the OT with status, tokens, cost,
+    # and latency.
+    resources :agent_runs, only: %i[index]
   end
 
   root "work_orders#index"

@@ -88,6 +88,10 @@ es:
       ai_analysis_pending: "Pendiente. Se generará automáticamente cuando se cree la orden."
       ai_analysis_in_progress: "Analizando con IA, esto toma unos segundos..."
       reanalyze_button: "Re-analizar"
+      agent_runs_toggle:
+        one: "%{count} corrida del agente"
+        other: "%{count} corridas del agente"
+      agent_runs_loading: "Cargando corridas..."
     # Strings consumidas por app/views/work_orders/_ai_analysis.html.erb.
     # Rails lazy lookup en partials usa `work_orders.ai_analysis.<key>`.
     ai_analysis:
@@ -118,6 +122,14 @@ es:
       success: "Orden de trabajo creada correctamente. Iniciando análisis con IA."
     reanalyze:
       queued: "Re-análisis encolado. Los resultados van a aparecer acá en unos segundos."
+
+  agent_runs:
+    index:
+      empty: "Aún no hay corridas registradas."
+    status:
+      succeeded: "Exitosa"
+      failed: "Fallida"
+      running: "En curso"
 
   activerecord:
     attributes:

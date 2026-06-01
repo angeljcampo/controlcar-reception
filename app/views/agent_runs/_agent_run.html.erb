@@ -1,0 +1,34 @@
+<li class="flex items-start space-x-3 py-3">
+  <div class="flex-shrink-0 mt-0.5">
+    <%= agent_run_status_icon(run) %>
+  </div>
+
+  <div class="flex-1 min-w-0">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-sm font-medium text-zinc-900"><%= run.ai_model.presence || "—" %></span>
+        <span class="text-xs text-zinc-400"><%= run.agent_name.demodulize %></span>
+      </div>
+      <span class="text-xs text-zinc-400 flex-shrink-0 ml-2">
+        <%= l(run.created_at, format: :short) %>
+      </span>
+    </div>
+
+    <div class="flex items-center gap-3 text-xs text-zinc-500 mt-1 flex-wrap">
+      <span><%= (run.input_tokens.to_i + run.output_tokens.to_i) %> tokens</span>
+      <span aria-hidden="true">·</span>
+      <span><%= format_cents(run.cost_cents) %></span>
+      <span aria-hidden="true">·</span>
+      <span><%= run.latency_ms.to_i %> ms</span>
+    </div>
+
+    <% if run.error_message.present? %>
+      <details class="mt-1.5">
+        <summary class="text-xs text-red-600 cursor-pointer hover:text-red-700">
+          <%= truncate(run.error_message, length: 80) %>
+        </summary>
+        <pre class="text-xs text-red-700 mt-1 bg-red-50 border border-red-100 rounded p-2 font-mono whitespace-pre-wrap break-words"><%= run.error_message %></pre>
+      </details>
+    <% end %>
+  </div>
+</li>
