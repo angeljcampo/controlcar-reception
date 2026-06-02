@@ -13,7 +13,7 @@ RSpec.describe Ai::Ingestion::PdfExtractor do
 
       expect(pages).to be_an(Array)
       expect(pages.size).to eq(3) # PCS son 3 págs
-      expect(pages.first.keys).to match_array([:page, :text])
+      expect(pages.first.keys).to match_array([ :page, :text ])
     end
 
     it "asigna page number 1-indexed (no 0-indexed)" do

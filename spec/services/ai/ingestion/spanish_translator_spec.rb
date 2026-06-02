@@ -105,11 +105,11 @@ RSpec.describe Ai::Ingestion::SpanishTranslator do
           .to_return(
             status: 200,
             body:   {
-              choices: [{ message: {
+              choices: [ { message: {
                 content: { translations: [
                   { index: 0, content: "solo una", breadcrumb: "x" }
                 ] }.to_json
-              } }]
+              } } ]
             }.to_json,
             headers: { "Content-Type" => "application/json" }
           )

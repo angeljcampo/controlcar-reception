@@ -22,7 +22,7 @@ RSpec.describe Ai::Ingestion::StructuredDtcChunker do
              * Cause two
           TXT
         }.join("\n\n")
-        [{ page: 1, text: body }]
+        [ { page: 1, text: body } ]
       end
 
       it "produce 1 chunk por código DTC" do
@@ -55,7 +55,7 @@ RSpec.describe Ai::Ingestion::StructuredDtcChunker do
 
     context "con códigos U/B/C además de P" do
       let(:pages) do
-        body = ["P0010", "U0001", "B0001", "C0001"].each_with_index.flat_map do |code, i|
+        body = [ "P0010", "U0001", "B0001", "C0001" ].each_with_index.flat_map do |code, i|
           [
             "#{code} - Test #{i}",
             " Description: bla bla.",
@@ -63,7 +63,7 @@ RSpec.describe Ai::Ingestion::StructuredDtcChunker do
           ]
         end.join("\n")
         # Repetimos para superar MIN_MATCHES
-        [{ page: 1, text: body * 3 }]
+        [ { page: 1, text: body * 3 } ]
       end
 
       it "matchea los 4 prefijos válidos" do
@@ -75,7 +75,7 @@ RSpec.describe Ai::Ingestion::StructuredDtcChunker do
 
     context "cuando el PDF NO tiene formato DTC reconocible" do
       let(:pages) do
-        [{ page: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 50 }]
+        [ { page: 1, text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 50 } ]
       end
 
       it "raises DetectionError (el caller debe fallback a token_window)" do
@@ -95,7 +95,7 @@ RSpec.describe Ai::Ingestion::StructuredDtcChunker do
       let(:pages) do
         # Solo 5 DTCs — menos que MIN_MATCHES (10)
         body = (1..5).map { |i| "P000#{i} - Test #{i}\n Description: x" }.join("\n\n")
-        [{ page: 1, text: body }]
+        [ { page: 1, text: body } ]
       end
 
       it "raises DetectionError aunque los matches sean válidos" do
