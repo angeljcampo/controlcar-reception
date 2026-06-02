@@ -26,9 +26,15 @@ Rails.application.routes.draw do
 
   # Knowledge base administration: lista los PDFs precargados,
   # permite subir nuevos y eliminar. El ingest se dispara async via Sidekiq.
+  # `bootstrap` carga los PDFs de db/seed_pdfs/ — camino para producción
+  # donde no tenemos shell access para correr `bin/rails db:seed`.
   resources :knowledge_documents,
             only: %i[index create destroy],
-            path: "knowledge"
+            path: "knowledge" do
+    collection do
+      post :bootstrap
+    end
+  end
 
   root "work_orders#index"
 end

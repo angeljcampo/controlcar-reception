@@ -58,82 +58,21 @@ end
 puts "Seed completo. WorkOrders: #{WorkOrder.count}. Vehicles: #{Vehicle.count}."
 
 # ─── Knowledge base: PDFs precargados ────────────────────────────────
-# Idempotente. Si el documento ya existe Y está :ready, no hacemos nada.
-# Si está :failed o :pending, lo re-ingestamos.
+# Solo se corre en development local. En producción la carga inicial
+# de la KB se hace desde el botón "Cargar manuales precargados" en
+# /knowledge (porque Render free no tiene shell para correr db:seed
+# manualmente — el seed pesado bloquearía el boot del web container).
 #
-# El ingest es SÍNCRONO al seedear (perform_now) para que `db:seed`
-# deje la app lista para usar — el evaluador no tiene que esperar
-# Sidekiq ni subir nada manualmente.
-#
-# Tiempo esperado: ~10 minutos con traducción (DTC_Codes son 147 págs).
-# Para iterar rápido localmente, exportá SKIP_KB_TRANSLATE=1 antes de
-# correr seeds — se ingesta en inglés (recall semántico bajo pero
-# keyword search sigue funcionando).
-KB_DOCUMENTS = [
-  {
-    filename:           "DTC_Codes.pdf",
-    title:              "Códigos DTC OBD-II (Ford 2007 PCED)",
-    chunking_strategy:  :structured_dtc,
-    # En inglés. Si SKIP_KB_TRANSLATE=1 o falla traducción se ingesta tal cual
-    # — keyword search por código DTC funciona igual.
-    needs_translation:  true
-  },
-  {
-    filename:           "PCS_Diagnostic_Codes.pdf",
-    title:              "PCS Diagnostic Codes (Transmisión)",
-    chunking_strategy:  :token_window,
-    needs_translation:  true
-  },
-  {
-    filename:           "Denton_Diagnostico_Automotriz.pdf",
-    title:              "Diagnóstico Avanzado de Fallas Automotrices (Tom Denton, 3ra ed)",
-    chunking_strategy:  :token_window,
-    # YA está en español → siempre skip translation, ingest rápido + distances
-    # de retrieval más bajas para queries naturales en español chileno.
-    needs_translation:  false
-  }
-].freeze
-
-translate = ENV["SKIP_KB_TRANSLATE"].blank?
-seed_dir  = Rails.root.join("db/seed_pdfs")
-
-KB_DOCUMENTS.each do |entry|
-  path = seed_dir.join(entry[:filename])
-  unless path.exist?
-    warn "  ⚠️  #{entry[:filename]} no encontrado en db/seed_pdfs/, skipping"
-    next
-  end
-
-  doc = KnowledgeDocument.find_or_initialize_by(title: entry[:title])
-  if doc.persisted? && doc.ready?
-    puts "  ✓ #{entry[:title]} ya está ready (#{doc.total_chunks} chunks), skipping"
-    next
-  end
-
-  doc.chunking_strategy = entry[:chunking_strategy]
-  doc.status            = "pending"
-  doc.error_message     = nil
-  doc.save!
-
-  doc.file.attach(
-    io:           File.open(path),
-    filename:     entry[:filename],
-    content_type: "application/pdf"
-  ) unless doc.file.attached?
-
-  # Si el doc YA está en español, nunca traducir, sin importar el flag global.
-  effective_translate = translate && entry[:needs_translation]
-
-  print "  → Ingesta de #{entry[:title]}#{effective_translate ? ' (con traducción ES)' : ' (sin traducción)'}... "
-  t = Time.now
-  IngestPdfJob.perform_now(doc.id, translate: effective_translate)
-  elapsed = ((Time.now - t)).round
-  doc.reload
-  if doc.ready?
-    puts "✓ #{doc.total_chunks} chunks en #{elapsed}s"
-  else
-    puts "✗ falló: #{doc.error_message}"
-  end
+# Para skipear acá también (iteración rápida): SKIP_KB_SEED=1 bin/rails db:seed
+if ENV["SKIP_KB_SEED"].present?
+  puts "KB seed skipped (SKIP_KB_SEED set)."
+else
+  puts "Cargando knowledge base (síncrono — esto puede tardar varios minutos)..."
+  result = KnowledgeBaseBootstrap.call(
+    translate: ENV["SKIP_KB_TRANSLATE"].blank?,
+    mode:      :sync
+  )
+  puts "  Encolados: #{result.queued.size}, Skipped (ya ready): #{result.skipped.size}, Missing: #{result.missing.size}"
+  result.missing.each { |f| warn "  ⚠️  #{f} no encontrado en db/seed_pdfs/" }
+  puts "KnowledgeBase seedeada. Documents: #{KnowledgeDocument.count}, Chunks: #{KnowledgeChunk.count}."
 end
-
-puts "KnowledgeBase seedeada. Documents: #{KnowledgeDocument.count}, Chunks: #{KnowledgeChunk.count}."

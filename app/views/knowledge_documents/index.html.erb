@@ -50,6 +50,51 @@
         </div>
       </div>
 
+      <%# ── Banner de bootstrap (PDFs precargados pendientes) ──────
+          Se muestra solo si hay PDFs en db/seed_pdfs/ que aún no
+          están en la KB. Para producción sin shell — el evaluador
+          clickea el botón y los PDFs se procesan en background. %>
+      <% if @pending_bootstrap.any? %>
+        <div class="wof-card mb-6"
+             style="padding: 22px 26px; border: 1px solid rgba(194, 249, 78, 0.30); background: linear-gradient(135deg, var(--wof-panel) 0%, rgba(194, 249, 78, 0.04) 100%);">
+          <div class="flex flex-wrap items-start gap-4">
+            <div style="display:inline-flex; width:44px; height:44px; border-radius:12px; background:var(--wof-accent-soft); color:var(--wof-accent); align-items:center; justify-content:center; flex-shrink: 0;">
+              <span class="material-symbols-outlined" style="font-size:22px">auto_awesome</span>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <h2 style="font-size: 16px; font-weight: 700; color: var(--wof-ink); margin: 0 0 4px;">
+                Cargar manuales precargados
+              </h2>
+              <p style="font-size: 13.5px; color: var(--wof-ink-soft); margin: 0 0 14px; line-height: 1.5;">
+                Hay <strong style="color: var(--wof-accent);"><%= @pending_bootstrap.size %></strong>
+                manual<%= "es" if @pending_bootstrap.size != 1 %> técnico<%= "s" if @pending_bootstrap.size != 1 %>
+                disponible<%= "s" if @pending_bootstrap.size != 1 %> para cargar en la knowledge base:
+                <%= @pending_bootstrap.map { |e| e[:title] }.join(" · ") %>.
+              </p>
+
+              <%= form_with url: bootstrap_knowledge_documents_path,
+                            method: :post,
+                            data: { turbo: true } do %>
+                <label class="flex items-center gap-2 mb-3" style="font-size: 13px; color: var(--wof-ink-soft); cursor: pointer;">
+                  <input type="checkbox" name="translate" value="1" checked
+                         style="accent-color: var(--wof-accent);">
+                  Traducir al español al ingestar
+                  <span style="color: var(--wof-muted); font-size: 12px;">
+                    (~10 min, ~$0.05 — recomendado para mejor recall semántico)
+                  </span>
+                </label>
+
+                <%= submit_tag "Procesar PDFs precargados",
+                               class: "wof-submit",
+                               style: "min-width: 0; padding: 0 22px; font-size: 13.5px;",
+                               data: { turbo_confirm: "Se van a procesar #{@pending_bootstrap.size} PDF#{@pending_bootstrap.size == 1 ? "" : "s"}. Continuar?" } %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
       <%# ── Form de upload ────────────────────────────────────────── %>
       <div id="knowledge_documents_form">
         <%= render "form", document: @new_document %>
