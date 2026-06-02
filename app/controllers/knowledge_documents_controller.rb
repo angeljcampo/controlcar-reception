@@ -17,6 +17,33 @@ class KnowledgeDocumentsController < ApplicationController
     @total_chunks         = KnowledgeChunk.count
     @total_pages          = KnowledgeDocument.sum(:total_pages)
     @total_embedding_cost = KnowledgeDocument.sum(:embedding_cost_cents)
+
+    # Catalog de PDFs precargados que aún NO están en la KB. El banner
+    # de "cargar precargados" se renderiza si hay al menos uno.
+    titles = @documents.pluck(:title).to_set
+    @pending_bootstrap = KnowledgeBaseBootstrap::CATALOG.reject do |entry|
+      titles.include?(entry[:title])
+    end
+  end
+
+  # Carga los PDFs precargados de db/seed_pdfs/ a la KB usando
+  # IngestPdfJob.perform_later (async). Es el camino para producción
+  # donde no tenemos shell para correr `bin/rails db:seed`.
+  #
+  # Idempotente: si los docs ya están :ready, los skipea.
+  def bootstrap
+    translate = ActiveModel::Type::Boolean.new.cast(params[:translate])
+    result    = KnowledgeBaseBootstrap.call(translate: translate, mode: :async)
+
+    msg = "Procesando #{result.queued.size} PDF#{result.queued.size == 1 ? "" : "s"}"
+    msg += translate ? " (con traducción ES, ~10 min)" : " (sin traducción, ~1 min)"
+    msg += ". La lista se actualiza sola cuando termina cada uno."
+
+    if result.missing.any?
+      msg += " ⚠️ No encontrados: #{result.missing.join(", ")}."
+    end
+
+    redirect_to knowledge_documents_path, notice: msg
   end
 
   def create
