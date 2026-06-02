@@ -79,6 +79,17 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # RSpec — test framework. Proyecto creado con --skip-test, así que esto
+  # es la primera test stack (no hay Minitest preexistente).
+  gem "rspec-rails", "~> 7.1"
+end
+
+group :test do
+  # Bloquea HTTP real en tests. Crítico: varios services llaman OpenAI
+  # (translator, embedder, agent) — sin webmock cada `rspec` quemaría
+  # tokens reales.
+  gem "webmock", require: false
 end
 
 group :development do
