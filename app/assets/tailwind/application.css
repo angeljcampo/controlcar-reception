@@ -199,6 +199,10 @@
   --wof-warn:          #FFC24B;
   --wof-danger:        #FF7676;
 
+  /* Full-bleed dark background so the area outside .wof-container is
+     also dark — otherwise the body's light background bleeds through
+     on viewports wider than the container's max-width. */
+  background: var(--wof-app-bg);
   font-family: "Space Grotesk", system-ui, sans-serif;
   letter-spacing: -0.1px;
   color: var(--wof-ink);

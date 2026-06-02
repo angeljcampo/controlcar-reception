@@ -2,7 +2,8 @@
     nested <dialog> modals (agent runs, cancel confirm) keep their light
     look since they render on the browser's top layer with backdrop. %>
 <div class="wof">
-  <div class="wof-page" style="max-width: 1400px; margin: 0 auto;">
+  <div class="wof-page">
+    <div class="wof-container" style="max-width: 1400px;">
   <%# Back link ──────────────────────────────────────────────────── %>
   <%= link_to work_orders_path, class: "wof-back", style: "margin-bottom: 16px; display: inline-flex;" do %>
     <span class="material-symbols-outlined" style="font-size:15px">arrow_back</span>
@@ -212,5 +213,6 @@
   <%# AI analysis — Turbo subscription + state-aware partial ──────── %>
   <%= turbo_stream_from @work_order %>
   <%= render "ai_analysis_state", work_order: @work_order %>
+    </div>
   </div>
 </div>
