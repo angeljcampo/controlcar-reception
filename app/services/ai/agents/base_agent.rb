@@ -83,7 +83,9 @@ module Ai
           end
 
           # Execute every non-final tool, then loop.
-          tool_results = execute_tools(response.tool_uses, iteration)
+          # Pass agent_run so tools (like SearchKnowledgeBase) can persist
+          # their own observability rows (RetrievalRun) under this AgentRun.
+          tool_results = execute_tools(response.tool_uses, iteration, agent_run)
           messages.concat(@provider.follow_up_messages(response, tool_results))
         end
 
@@ -143,18 +145,19 @@ module Ai
         )
       end
 
-      def execute_tools(tool_uses, iteration)
+      def execute_tools(tool_uses, iteration, agent_run)
         tool_uses
           .reject { |tu| tu[:name] == final_tool_name }
-          .map { |tu| execute_one_tool(tu, iteration) }
+          .map { |tu| execute_one_tool(tu, iteration, agent_run) }
       end
 
-      def execute_one_tool(tool_use, iteration)
+      def execute_one_tool(tool_use, iteration, agent_run)
         tool_class = Ai::Tools::ToolRegistry.find(tool_use[:name])
         raise UnknownTool, "unknown tool: #{tool_use[:name]}" if tool_class.nil?
 
-        args = (tool_use[:arguments] || {}).symbolize_keys
-        result = tool_class.new(context: @context).call(**args)
+        args         = (tool_use[:arguments] || {}).symbolize_keys
+        tool_context = @context.merge(agent_run: agent_run)
+        result       = tool_class.new(context: tool_context).call(**args)
         log_tool_call(iteration, tool_use, result)
         { id: tool_use[:id], result: result }
       rescue => e

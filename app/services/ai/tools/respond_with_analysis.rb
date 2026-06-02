@@ -143,13 +143,17 @@ module Ai
           {
             type: "object",
             additionalProperties: false,
-            required: %w[document_title page relevant_excerpt],
+            required: %w[document_title page relevant_excerpt dtc_code],
             properties: {
               document_title: { type: "string" },
               page:           { type: "integer" },
               relevant_excerpt: {
                 type: "string",
                 description: "Fragmento exacto del documento que apoyó esta parte del análisis."
+              },
+              dtc_code: {
+                type: %w[string null],
+                description: "Código DTC si el chunk citado lo tiene (ej: 'P0301', 'U0001'). null si el chunk es prose narrativa."
               }
             }
           }
