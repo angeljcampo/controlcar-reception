@@ -23,8 +23,11 @@ gem "tailwindcss-rails"
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
-# Database-backed adapters for Rails.cache and Action Cable (Active Job runs on Sidekiq)
-gem "solid_cache"
+# Database-backed Action Cable adapter (used in development only; production
+# uses the redis adapter — see cable.yml). solid_cache was removed: both
+# environments use :memory_store. Keeping solid_cache around with our
+# single-DB production setup made it auto-connect to a non-existent
+# `cache` DB at boot and crash Puma startup.
 gem "solid_cable"
 
 # Reduces boot times through caching; required in config/boot.rb

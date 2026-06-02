@@ -361,10 +361,6 @@ GEM
       activejob (>= 7.2)
       activerecord (>= 7.2)
       railties (>= 7.2)
-    solid_cache (1.0.10)
-      activejob (>= 7.2)
-      activerecord (>= 7.2)
-      railties (>= 7.2)
     sshkit (1.25.0)
       base64
       logger
@@ -447,7 +443,6 @@ DEPENDENCIES
   ruby-openai
   sidekiq
   solid_cable
-  solid_cache
   stimulus-rails
   tailwindcss-rails
   thruster
