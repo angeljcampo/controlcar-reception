@@ -28,8 +28,11 @@ Rails.application.configure do
   # Change to :null_store to avoid any caching.
   config.cache_store = :memory_store
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  # Active Storage backend. Defaults to :local (storage/) so day-to-day
+  # development stays fast and isolated from the production bucket. Set
+  # `ACTIVE_STORAGE_SERVICE=amazon bin/dev` to flip dev onto the real S3
+  # bucket for end-to-end smoke testing without redeploying.
+  config.active_storage.service = ENV.fetch("ACTIVE_STORAGE_SERVICE", "local").to_sym
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
