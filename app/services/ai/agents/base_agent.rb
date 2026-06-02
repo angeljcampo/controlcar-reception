@@ -42,6 +42,7 @@ module Ai
         started_at = Time.current
         agent_run  = create_agent_run
         messages   = Array.new(initial_messages)
+        log_initial_input(messages)
 
         MAX_ITERATIONS.times do |i|
           iteration = i + 1
@@ -164,6 +165,42 @@ module Ai
       # ── Log builders ───────────────────────────────────────────────
       # Each entry is a self-describing Hash that the agent_runs view
       # renders chronologically as a timeline.
+
+      # Captures what we actually sent to the LLM on the first turn
+      # (system prompt + user content). Images are reduced to a count +
+      # mime type so we don't bloat the raw_log with base64 payloads.
+      def log_initial_input(messages)
+        @log << {
+          type:           "initial_input",
+          system_prompt:  system_prompt,
+          user_content:   summarize_content(messages),
+          at:             Time.current.iso8601
+        }
+      end
+
+      # Walks the message array and returns a JSON-safe summary: text parts
+      # verbatim, image parts as `{ type: "image", mime: "image/jpeg" }`.
+      # Strips the base64 url so the log stays readable + cheap to store.
+      def summarize_content(messages)
+        messages.map do |msg|
+          parts = Array(msg[:content])
+          summarized_parts = parts.map do |part|
+            case part[:type]
+            when "text"      then { type: "text", text: part[:text] }
+            when "image_url" then { type: "image", mime: extract_mime(part) }
+            else                  part
+            end
+          end
+          { role: msg[:role], content: summarized_parts }
+        end
+      end
+
+      def extract_mime(image_part)
+        url = image_part.dig(:image_url, :url).to_s
+        # data URLs look like "data:image/jpeg;base64,xxx..."
+        match = url.match(/\Adata:([^;]+);/)
+        match ? match[1] : "unknown"
+      end
 
       def log_llm_response(iteration, response)
         @log << {

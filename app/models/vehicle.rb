@@ -8,10 +8,16 @@ class Vehicle < ApplicationRecord
 
   before_validation :normalize_patente
 
-  # Returns previous work orders for this vehicle (excluding the one passed in),
-  # ordered most recent first. Used as context for the diagnostic agent.
+  # Returns previous work orders for this vehicle (excluding the one
+  # passed in AND any cancelled order), ordered most recent first.
+  # Used as context for the diagnostic agent: a cancelled OT never
+  # made it to actual mechanic work, so it's noise (or misleading
+  # "history") for the LLM. We strip it out at the source.
   def history_excluding(work_order)
-    work_orders.where.not(id: work_order&.id).order(created_at: :desc)
+    work_orders
+      .where.not(id: work_order&.id)
+      .where.not(status: "cancelled")
+      .order(created_at: :desc)
   end
 
   private

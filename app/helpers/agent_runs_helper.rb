@@ -14,12 +14,13 @@ module AgentRunsHelper
     end
   end
 
-  # Dispatcher for the three log entry types captured by BaseAgent. Each
-  # entry is a Hash with a "type" key ("llm_response", "tool_call",
-  # "final_output"). Returns rendered HTML.
+  # Dispatcher for the four log entry types captured by BaseAgent. Each
+  # entry is a Hash with a "type" key ("initial_input", "llm_response",
+  # "tool_call", "final_output"). Returns rendered HTML.
   def render_log_entry(entry, index)
     type = entry["type"] || entry[:type]
     case type
+    when "initial_input" then render_initial_input_entry(entry, index)
     when "llm_response"  then render_llm_response_entry(entry, index)
     when "tool_call"     then render_tool_call_entry(entry, index)
     when "final_output"  then render_final_output_entry(entry, index)
@@ -40,6 +41,54 @@ module AgentRunsHelper
   # ── Log entry renderers ──────────────────────────────────────────
   # All entries are jsonb in Postgres, so keys come back as STRINGS.
   # We dig with both string and symbol keys to stay robust.
+
+  # First entry of every run: what we sent to the LLM. Shows the system
+  # prompt + the user content. Image parts collapse to "[image · mime]"
+  # so the panel stays scannable (no base64 dumps).
+  def render_initial_input_entry(entry, _index)
+    system_prompt = fetch_log(entry, :system_prompt)
+    user_content  = fetch_log(entry, :user_content) || []
+
+    tag.div(class: "rounded-lg border border-sky-200 bg-sky-50/60 p-3") do
+      header = tag.div("Input enviado al LLM",
+                       class: "text-label-md uppercase text-sky-900 font-semibold mb-2")
+
+      sections = []
+
+      if system_prompt.present?
+        sections << details_block("System prompt (#{system_prompt.length} chars)", system_prompt)
+      end
+
+      user_messages = Array(user_content).select { |m| fetch_log(m, :role) == "user" }
+      user_messages.each do |msg|
+        parts = Array(fetch_log(msg, :content))
+        text_parts  = parts.select { |p| fetch_log(p, :type) == "text" }
+        image_parts = parts.select { |p| fetch_log(p, :type) == "image" }
+
+        text_parts.each do |part|
+          sections << tag.div(class: "mt-2") do
+            safe_join([
+              tag.p("Mensaje del usuario", class: "text-label-md text-sky-800 font-semibold uppercase mb-1"),
+              tag.pre(fetch_log(part, :text),
+                      class: "bg-surface-container-lowest border border-outline-variant rounded p-2 text-[12px] font-mono whitespace-pre-wrap break-words")
+            ])
+          end
+        end
+
+        if image_parts.any?
+          mimes = image_parts.map { |p| fetch_log(p, :mime) }
+          sections << tag.p(class: "text-body-sm text-sky-800 mt-2") do
+            safe_join([
+              tag.span("Imágenes adjuntas (#{image_parts.size}): ", class: "font-semibold"),
+              mimes.join(", ")
+            ])
+          end
+        end
+      end
+
+      safe_join([ header, *sections ])
+    end
+  end
 
   def render_llm_response_entry(entry, index)
     iteration = fetch_log(entry, :iteration)
