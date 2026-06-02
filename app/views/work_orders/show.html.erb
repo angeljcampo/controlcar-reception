@@ -58,43 +58,67 @@
     <% end %>
 
     <div class="px-6 py-5 bg-zinc-50">
-      <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center justify-between mb-3"
+           data-controller="agent-runs-modal"
+           data-agent-runs-modal-url-value="<%= work_order_agent_runs_path(@work_order) %>">
         <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide"><%= t(".ai_analysis_heading") %></h2>
-        <%# Show the Re-analizar button whenever an analysis is NOT currently running.
-            This covers the cases where the job ran but ended in a rollback ("draft"
-            with an existing AiAnalysis from a previous successful run), so the user
-            can always retry from the UI as long as a job isn't already in flight. %>
-        <% unless @work_order.analyzing? %>
-          <%= button_to t(".reanalyze_button"),
-                        reanalyze_work_order_path(@work_order),
-                        method: :post,
-                        class: "text-xs text-indigo-600 hover:text-indigo-700 font-medium",
-                        form: { class: "inline" } %>
-        <% end %>
+
+        <div class="flex items-center gap-3">
+          <%# Icon button → opens the modal that lazy-loads agent runs from
+              the controller. Count badge sits on top of the icon. %>
+          <% if @work_order.agent_runs.any? %>
+            <button type="button"
+                    data-action="click->agent-runs-modal#open"
+                    aria-label="<%= t(".agent_runs_aria_label", count: @work_order.agent_runs.size) %>"
+                    title="<%= t(".agent_runs_aria_label", count: @work_order.agent_runs.size) %>"
+                    class="relative text-zinc-500 hover:text-indigo-600 transition p-1.5 rounded-md hover:bg-white">
+              <%# Heroicons "arrow-path" / clock-rewind glyph — semantic for "run history". %>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+              <span class="absolute -top-0.5 -right-0.5 bg-indigo-600 text-white text-[10px] font-medium leading-none rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+                <%= @work_order.agent_runs.size %>
+              </span>
+            </button>
+          <% end %>
+
+          <%# Show the Re-analizar button whenever an analysis is NOT currently running. %>
+          <% unless @work_order.analyzing? %>
+            <%= button_to t(".reanalyze_button"),
+                          reanalyze_work_order_path(@work_order),
+                          method: :post,
+                          class: "text-xs text-indigo-600 hover:text-indigo-700 font-medium",
+                          form: { class: "inline" } %>
+          <% end %>
+        </div>
+
+        <%# Native <dialog> — ESC and click-outside close are free; we wire
+            backdrop click via the Stimulus controller too. The Turbo Frame
+            inside gets its src set in JS on first open so the controller
+            is only hit once per page load (refresh by closing+reopening
+            isn't needed for an audit log). %>
+        <dialog data-agent-runs-modal-target="dialog"
+                data-action="click->agent-runs-modal#backdropClick"
+                class="w-[90vw] max-w-2xl rounded-xl bg-white shadow-2xl p-0 m-auto backdrop:bg-zinc-900/50 backdrop:backdrop-blur-sm">
+          <div class="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
+            <h3 class="text-base font-semibold text-zinc-900"><%= t(".agent_runs_modal_title") %></h3>
+            <button type="button"
+                    data-action="click->agent-runs-modal#close"
+                    aria-label="<%= t(".agent_runs_modal_close") %>"
+                    class="text-zinc-400 hover:text-zinc-700 text-2xl leading-none w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 transition">
+              ×
+            </button>
+          </div>
+          <div class="px-5 py-3 max-h-[70vh] overflow-y-auto">
+            <turbo-frame id="agent_runs_panel" data-agent-runs-modal-target="frame">
+              <p class="text-sm text-zinc-500 py-3"><%= t(".agent_runs_loading") %></p>
+            </turbo-frame>
+          </div>
+        </dialog>
       </div>
 
       <%= turbo_stream_from @work_order %>
       <%= render "ai_analysis_state", work_order: @work_order %>
     </div>
-
-    <% if @work_order.agent_runs.any? %>
-      <details class="border-t border-zinc-200 group">
-        <summary class="px-6 py-3 cursor-pointer flex items-center justify-between hover:bg-zinc-50 transition list-none">
-          <span class="text-sm font-medium text-zinc-700">
-            <%= t(".agent_runs_toggle", count: @work_order.agent_runs.size) %>
-          </span>
-          <span class="text-zinc-400 group-open:rotate-180 transition-transform text-sm">▾</span>
-        </summary>
-        <div class="px-6 pb-5 bg-white">
-          <%# loading="lazy" defers the controller hit until <details> opens
-              and the frame enters the viewport. %>
-          <turbo-frame id="agent_runs_panel"
-                       src="<%= work_order_agent_runs_path(@work_order) %>"
-                       loading="lazy">
-            <p class="text-sm text-zinc-500 py-3"><%= t(".agent_runs_loading") %></p>
-          </turbo-frame>
-        </div>
-      </details>
-    <% end %>
   </div>
 </div>

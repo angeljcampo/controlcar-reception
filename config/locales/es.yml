@@ -89,9 +89,11 @@ es:
       ai_analysis_in_progress: "Analizando con IA"
       ai_analysis_in_progress_hint: "Buscando historial del vehículo y armando el diagnóstico..."
       reanalyze_button: "Re-analizar"
-      agent_runs_toggle:
-        one: "%{count} corrida del agente"
-        other: "%{count} corridas del agente"
+      agent_runs_aria_label:
+        one: "Ver corrida del agente"
+        other: "Ver %{count} corridas del agente"
+      agent_runs_modal_title: "Corridas del agente"
+      agent_runs_modal_close: "Cerrar"
       agent_runs_loading: "Cargando corridas..."
     # Strings consumidas por app/views/work_orders/_ai_analysis.html.erb.
     # Rails lazy lookup en partials usa `work_orders.ai_analysis.<key>`.
