@@ -26,14 +26,15 @@ Rails.application.configure do
   # Credentials come from env vars — see config/storage.yml.
   config.active_storage.service = :amazon
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
+  # Render terminates SSL at its load balancer, so the Rails app sees
+  # plain HTTP internally. assume_ssl makes Rails generate https:// URLs
+  # and treat cookies as secure; force_ssl redirects any non-TLS request.
+  config.assume_ssl = true
+  config.force_ssl = true
 
-  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
-
-  # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  # Skip http-to-https redirect for Render's health checks (they hit /up
+  # over HTTP directly against the container before LB routing kicks in).
+  config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
@@ -48,8 +49,11 @@ Rails.application.configure do
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
 
-  # Replace the default in-process memory cache store with a durable alternative.
-  config.cache_store = :solid_cache_store
+  # Use in-process memory cache. solid_cache would need its own DB table
+  # (we collapsed to a single DB for the free Render plan), and we don't
+  # have heavy cache demands for this app — Rails fragment/SQL caches
+  # are fine in-process per dyno.
+  config.cache_store = :memory_store
 
   # Active Job uses Sidekiq (queue_adapter is set in config/application.rb).
 

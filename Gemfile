@@ -44,6 +44,12 @@ gem "image_processing", "~> 1.2"
 # storage.yml's amazon entry loads it lazily on first use.
 gem "aws-sdk-s3", require: false
 
+# Redis client for ActionCable's `:redis` adapter in production. Sidekiq
+# already uses Redis (via redis-client), so reusing the same Redis instance
+# for Action Cable broadcasts keeps the infra simple — one Redis service
+# powers both background jobs AND real-time Turbo Stream updates.
+gem "redis", "~> 5.0"
+
 # === Controlcar challenge ===
 
 # OpenAI client — used for both chat completions (GPT-5) and embeddings
