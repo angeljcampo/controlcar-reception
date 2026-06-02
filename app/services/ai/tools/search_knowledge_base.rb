@@ -132,7 +132,7 @@ module Ai
       private
 
       def vector_search_with_metrics(query, limit:)
-        embed_result = Ai::Ingestion::BatchEmbedder.call([query])
+        embed_result = Ai::Ingestion::BatchEmbedder.call([ query ])
         embedding    = embed_result[:embeddings].first
         tokens       = embed_result[:total_tokens]
 
@@ -142,7 +142,7 @@ module Ai
                     .each_with_index
                     .map { |c, rank| { chunk: c, vector_rank: rank, vector_distance: c.neighbor_distance } }
 
-        [results, tokens]
+        [ results, tokens ]
       end
 
       def keyword_search(query, limit:)

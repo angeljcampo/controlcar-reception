@@ -90,11 +90,11 @@ class IngestPdfJob < ApplicationJob
     )
 
     chunker_class = case @doc.chunking_strategy
-                    when "structured_dtc" then Ai::Ingestion::StructuredDtcChunker
-                    when "token_window"   then Ai::Ingestion::TokenWindowChunker
-                    else
+    when "structured_dtc" then Ai::Ingestion::StructuredDtcChunker
+    when "token_window"   then Ai::Ingestion::TokenWindowChunker
+    else
                       raise "Unknown chunking_strategy: #{@doc.chunking_strategy.inspect}"
-                    end
+    end
 
     chunks = chunker_class.call(pages, document_title: @doc.title)
     Rails.logger.info("[IngestPdfJob] produced #{chunks.size} chunks")

@@ -88,7 +88,7 @@ module Ai
                 "Embeddings devueltos (#{embeddings.size}) ≠ inputs (#{batch.size})"
         end
 
-        [embeddings, tokens]
+        [ embeddings, tokens ]
       end
 
       def cost_cents(tokens)
