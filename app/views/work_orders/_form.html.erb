@@ -4,6 +4,7 @@
     dropzone so clicking anywhere on the zone opens the file picker. %>
 <%= form_with model: work_order,
               multipart: true,
+              data: { controller: "vehicle-lookup" },
               class: "space-y-10 bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant p-6 lg:p-10" do |f| %>
   <% if work_order.errors.any? %>
     <div class="bg-error-container border border-error/30 rounded-lg p-4">
@@ -19,7 +20,11 @@
   <% end %>
 
   <%# Priority is intentionally NOT in the form: the LLM owns that field.
-      The job updates WorkOrder.priority from the analysis once it runs. %>
+      The job updates WorkOrder.priority from the analysis once it runs.
+      Vehicle metadata (make/model/year) are virtual attrs on WorkOrder
+      that the create service forwards onto Vehicle. The vehicle-lookup
+      Stimulus controller autocompletes them when the patente already
+      exists in the DB — see app/javascript/controllers/vehicle_lookup_controller.js %>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
     <div class="space-y-3">
       <%= f.label :patente, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
@@ -27,6 +32,10 @@
                        value: work_order.patente || work_order.vehicle&.patente,
                        placeholder: t(".patente_placeholder"),
                        autofocus: true,
+                       data: {
+                         vehicle_lookup_target: "patente",
+                         action: "change->vehicle-lookup#fetch"
+                       },
                        class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60 font-mono uppercase" %>
     </div>
 
@@ -40,10 +49,39 @@
       </div>
     </div>
 
+    <%# Vehicle metadata row — make / model / year. Autocompleted by the
+        lookup controller when the patente is already on file. %>
+    <div class="space-y-3">
+      <%= f.label :make, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
+      <%= f.text_field :make,
+                       placeholder: t(".make_placeholder"),
+                       data: { vehicle_lookup_target: "make" },
+                       class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60" %>
+    </div>
+
+    <div class="space-y-3">
+      <%= f.label :model, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
+      <%= f.text_field :model,
+                       placeholder: t(".model_placeholder"),
+                       data: { vehicle_lookup_target: "model" },
+                       class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60" %>
+    </div>
+
+    <div class="space-y-3">
+      <%= f.label :year, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
+      <%= f.number_field :year,
+                         min: 1901,
+                         max: Date.current.year + 1,
+                         placeholder: t(".year_placeholder"),
+                         data: { vehicle_lookup_target: "year" },
+                         class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60" %>
+    </div>
+
     <div class="md:col-span-2 space-y-3">
       <%= f.label :customer_name, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
       <%= f.text_field :customer_name,
                        placeholder: t(".customer_name_placeholder"),
+                       data: { vehicle_lookup_target: "customerName" },
                        class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60" %>
     </div>
   </div>

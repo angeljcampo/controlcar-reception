@@ -171,6 +171,9 @@ es:
       mileage_placeholder: "Ej: 45000"
       mileage_unit: "KM"
       customer_name_placeholder: "Nombre completo del titular"
+      make_placeholder: "Ej: Toyota"
+      model_placeholder: "Ej: Corolla"
+      year_placeholder: "Ej: 2018"
       ai_badge: "IA"
       reason_placeholder: "Ej: Vehículo tirita en ralentí y prende la luz de check engine al acelerar"
       reason_hint: "Describe los síntomas con tus propias palabras. La IA usará este texto para diagnosticar."
@@ -210,6 +213,12 @@ es:
         priority: "Prioridad"
         photos: "Fotos"
         created_at: "Ingresada"
+        # Virtual attrs forwarded to the underlying Vehicle by the create
+        # service. Listed here so the form's f.label picks up the Spanish
+        # text instead of "Make" / "Model" / "Year".
+        make: "Marca"
+        model: "Modelo"
+        year: "Año"
       vehicle:
         patente: "Patente"
         make: "Marca"

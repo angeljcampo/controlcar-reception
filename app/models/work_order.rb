@@ -2,9 +2,12 @@ class WorkOrder < ApplicationRecord
   PRIORITIES = %w[low medium high critical].freeze
   STATUSES = %w[draft analyzing analyzed in_review cancelled].freeze
 
-  # Virtual attribute used by the form. The controller normalizes it and
-  # find_or_creates the underlying Vehicle so the form looks like one entity.
-  attr_accessor :patente
+  # Virtual attributes used by the form. The controller normalizes them
+  # and find_or_creates the underlying Vehicle so the form looks like
+  # one entity. `patente` identifies the Vehicle; `make`/`model`/`year`
+  # populate it (or update it) when the form provides them, so the LLM
+  # has actual vehicle metadata instead of nulls.
+  attr_accessor :patente, :make, :model, :year
 
   belongs_to :vehicle
   has_one :ai_analysis, dependent: :destroy

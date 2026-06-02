@@ -7,6 +7,11 @@ Rails.application.routes.draw do
   # Health check endpoint usado por Render para verificar que el container responde.
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # JSON endpoint used by the new-OT form to autocomplete vehicle data
+  # when the user types a patente that's already on file. Not RESTful
+  # CRUD on Vehicle (we don't expose them yet), just a single lookup.
+  get "vehicles/lookup", to: "vehicles#lookup"
+
   resources :work_orders, only: %i[index new create show] do
     member do
       post :reanalyze

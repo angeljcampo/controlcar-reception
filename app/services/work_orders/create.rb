@@ -6,7 +6,16 @@ module WorkOrders
 
     def initialize(params)
       @patente = normalize_patente(params[:patente])
-      @attrs   = params.except(:patente)
+      # Pull make/model/year out so they don't get passed to WorkOrder
+      # (they live on Vehicle). Blanks are dropped so re-submitting the
+      # form with empty vehicle fields doesn't wipe data already saved
+      # on a returning vehicle.
+      @vehicle_attrs = {
+        make:  params[:make].presence,
+        model: params[:model].presence,
+        year:  params[:year].presence
+      }.compact
+      @attrs = params.except(:patente, :make, :model, :year)
     end
 
     def call
@@ -19,6 +28,11 @@ module WorkOrders
       end
 
       vehicle = Vehicle.find_or_create_by!(patente: @patente)
+      # Persist vehicle metadata from the form. compact above means we
+      # only set/update non-blank values — empty fields don't null out
+      # existing data on a returning vehicle.
+      vehicle.update!(@vehicle_attrs) if @vehicle_attrs.any?
+
       @work_order = vehicle.work_orders.new(@attrs)
       @work_order.patente = @patente
 

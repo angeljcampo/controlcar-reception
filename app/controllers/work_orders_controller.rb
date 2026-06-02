@@ -54,11 +54,13 @@ class WorkOrdersController < ApplicationController
 
   def work_order_attrs
     # `:priority` is intentionally NOT permitted — the LLM owns that
-    # field. WorkOrders are created with the controller's default
-    # ("medium") and the AnalyzeWorkOrderJob overwrites it with the
-    # AI's verdict once the analysis completes.
+    # field. `:make`/`:model`/`:year` are virtual attrs on WorkOrder
+    # that the create service forwards onto the Vehicle so the LLM
+    # gets actual metadata instead of nulls in get_vehicle_history.
     params.require(:work_order).permit(
-      :customer_name, :mileage, :reason, :patente, photos: []
+      :customer_name, :mileage, :reason, :patente,
+      :make, :model, :year,
+      photos: []
     )
   end
 end
