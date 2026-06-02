@@ -99,6 +99,20 @@ class IngestPdfJob < ApplicationJob
     chunks = chunker_class.call(pages, document_title: @doc.title)
     Rails.logger.info("[IngestPdfJob] produced #{chunks.size} chunks")
     chunks
+  rescue Ai::Ingestion::StructuredDtcChunker::DetectionError => e
+    # Auto-fallback: el usuario eligió structured_dtc pero el PDF no es
+    # un catálogo Ford-style. En lugar de fallar y dejarlo en :failed,
+    # caemos a token_window (siempre funciona para prose) y actualizamos
+    # la strategy del doc para que quede consistente con cómo se chunkeó
+    # realmente. El user obtiene su KB sin tener que reintentar.
+    Rails.logger.warn(
+      "[IngestPdfJob] structured_dtc no detectó formato en #{@doc.title} " \
+      "(#{e.message}). Auto-fallback a token_window."
+    )
+    @doc.update!(chunking_strategy: :token_window)
+    chunks = Ai::Ingestion::TokenWindowChunker.call(pages, document_title: @doc.title)
+    Rails.logger.info("[IngestPdfJob] fallback token_window produced #{chunks.size} chunks")
+    chunks
   end
 
   def translate_chunks(chunks)
