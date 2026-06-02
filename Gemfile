@@ -39,6 +39,11 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# S3 service backend for Active Storage in production. `require: false`
+# keeps the gem out of dev boot (we use the local Disk service there);
+# storage.yml's amazon entry loads it lazily on first use.
+gem "aws-sdk-s3", require: false
+
 # === Controlcar challenge ===
 
 # OpenAI client — used for both chat completions (GPT-5) and embeddings
