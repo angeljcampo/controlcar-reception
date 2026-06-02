@@ -1,69 +1,204 @@
-<div class="max-w-4xl mx-auto px-4 py-8">
-  <div class="mb-6">
-    <%= link_to t(".back_to_list"), work_orders_path, class: "text-sm text-zinc-500 hover:text-zinc-700" %>
-  </div>
+<div class="max-w-[1400px] mx-auto px-6 py-8">
+  <%# Back link ──────────────────────────────────────────────────── %>
+  <%= link_to work_orders_path,
+              class: "inline-flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors mb-6 text-body-sm" do %>
+    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+    <%= t(".back_to_list") %>
+  <% end %>
 
-  <div class="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
-    <div class="px-6 py-5 border-b border-zinc-200 flex items-center justify-between">
-      <div>
-        <div class="flex items-center space-x-3">
-          <span class="font-mono text-2xl font-semibold text-zinc-900"><%= @work_order.vehicle.patente %></span>
+  <%# Header card: title + status pills + metadata + actions ──── %>
+  <section class="bg-surface-container-lowest rounded-xl p-6 custom-shadow mb-6 border border-outline-variant/30">
+    <div class="flex flex-wrap justify-between items-start gap-6">
+      <div class="space-y-2">
+        <div class="flex items-center gap-3 flex-wrap">
+          <h1 class="font-headline text-headline-lg text-on-surface">
+            <%= t(".order_prefix") %><%= @work_order.vehicle.patente %>
+          </h1>
           <%= status_badge(@work_order) %>
+          <%= priority_with_suffix_badge(@work_order) %>
         </div>
-        <p class="text-sm text-zinc-600 mt-1"><%= @work_order.customer_name %></p>
-      </div>
-      <%= priority_badge(@work_order) %>
-    </div>
 
-    <dl class="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm border-b border-zinc-200">
-      <div>
-        <dt class="text-zinc-500"><%= WorkOrder.human_attribute_name(:mileage) %></dt>
-        <dd class="text-zinc-900 font-medium mt-1">
-          <%= @work_order.mileage ? "#{number_with_delimiter(@work_order.mileage)} #{t('.mileage_unit')}" : "—" %>
-        </dd>
-      </div>
-      <div>
-        <dt class="text-zinc-500"><%= t(".entered_at_heading") %></dt>
-        <dd class="text-zinc-900 font-medium mt-1">
-          <%= l(@work_order.created_at, format: :default) %>
-        </dd>
-      </div>
-      <div>
-        <dt class="text-zinc-500"><%= t(".vehicle_heading") %></dt>
-        <dd class="text-zinc-900 font-medium mt-1">
-          <%= [@work_order.vehicle.make, @work_order.vehicle.model, @work_order.vehicle.year].compact.join(" ").presence || "—" %>
-        </dd>
-      </div>
-    </dl>
-
-    <div class="px-6 py-5 border-b border-zinc-200">
-      <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-2"><%= t(".reason_heading") %></h2>
-      <p class="text-zinc-900 whitespace-pre-wrap"><%= @work_order.reason %></p>
-    </div>
-
-    <% if @work_order.photos.attached? %>
-      <div class="px-6 py-5 border-b border-zinc-200">
-        <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-3">
-          <%= t(".photos_heading", count: @work_order.photos.count) %>
-        </h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          <% @work_order.photos.each do |photo| %>
-            <%= link_to url_for(photo), target: "_blank", rel: "noopener", class: "block aspect-square rounded-md overflow-hidden border border-zinc-200 hover:border-indigo-400 transition" do %>
-              <%= image_tag photo.variant(resize_to_fill: [400, 400]),
-                            class: "w-full h-full object-cover" %>
-            <% end %>
+        <%# Metadata row: customer + vehicle + km + date %>
+        <div class="flex flex-wrap gap-x-6 gap-y-2 text-on-surface-variant pt-1">
+          <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">person</span>
+            <span class="text-body-sm"><%= @work_order.customer_name %></span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">directions_car</span>
+            <span class="text-body-sm">
+              <%= [@work_order.vehicle.make, @work_order.vehicle.model, @work_order.vehicle.year ? "(#{@work_order.vehicle.year})" : nil].compact.join(" ").presence || t(".vehicle_unknown") %>
+            </span>
+          </div>
+          <% if @work_order.mileage %>
+            <div class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-[18px]">speed</span>
+              <span class="text-body-sm"><%= number_with_delimiter(@work_order.mileage) %> <%= t(".mileage_unit") %></span>
+            </div>
           <% end %>
+          <div class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">calendar_today</span>
+            <span class="text-body-sm"><%= l(@work_order.created_at.to_date, format: :default) %></span>
+          </div>
         </div>
       </div>
-    <% end %>
 
-    <div class="px-6 py-5 bg-zinc-50">
-      <h2 class="text-sm font-medium text-zinc-500 uppercase tracking-wide mb-2"><%= t(".ai_analysis_heading") %></h2>
-      <% if @work_order.ai_analysis %>
-        <p class="text-sm text-zinc-600"><%= t(".ai_analysis_existing") %></p>
-      <% else %>
-        <p class="text-sm text-zinc-600 italic"><%= t(".ai_analysis_pending") %></p>
-      <% end %>
+      <%# Action buttons: secondary icons + primary CTA ────────── %>
+      <div class="flex items-center gap-2"
+           data-controller="agent-runs-modal"
+           data-agent-runs-modal-url-value="<%= work_order_agent_runs_path(@work_order) %>">
+
+        <%# Agent runs history (icon button) %>
+        <% if @work_order.agent_runs.any? %>
+          <div class="relative group">
+            <button type="button"
+                    data-action="click->agent-runs-modal#open"
+                    aria-label="<%= t(".agent_runs_aria_label", count: @work_order.agent_runs.size) %>"
+                    class="relative p-2 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
+              <span class="material-symbols-outlined">history</span>
+              <span class="absolute top-0 right-0 bg-primary text-on-primary text-[10px] font-bold leading-none rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+                <%= @work_order.agent_runs.size %>
+              </span>
+            </button>
+            <span role="tooltip"
+                  class="pointer-events-none absolute top-full right-0 mt-2 px-2 py-1 rounded-md bg-on-surface text-inverse-on-surface text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <%= t(".agent_runs_aria_label", count: @work_order.agent_runs.size) %>
+            </span>
+          </div>
+        <% end %>
+
+        <%# Re-analizar (icon button) — hidden while analyzing or once
+            cancelled. The controller also blocks this server-side. %>
+        <% unless @work_order.analyzing? || @work_order.cancelled? %>
+          <div class="relative group">
+            <%= button_to reanalyze_work_order_path(@work_order),
+                          method: :post,
+                          class: "p-2 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-all hover:rotate-180 duration-500",
+                          form: { class: "inline" },
+                          aria: { label: t(".reanalyze_button") } do %>
+              <span class="material-symbols-outlined">sync</span>
+            <% end %>
+            <span role="tooltip"
+                  class="pointer-events-none absolute top-full right-0 mt-2 px-2 py-1 rounded-md bg-on-surface text-inverse-on-surface text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <%= t(".reanalyze_button") %>
+            </span>
+          </div>
+        <% end %>
+
+        <%# Cancelar OT (icon button) — opens a confirmation modal. %>
+        <% if @work_order.cancellable? %>
+          <div class="relative group" data-controller="cancel-dialog">
+            <button type="button"
+                    data-action="click->cancel-dialog#open"
+                    aria-label="<%= t(".cancel_button") %>"
+                    class="p-2 rounded-full hover:bg-error-container text-on-surface-variant hover:text-error transition-colors cursor-pointer">
+              <span class="material-symbols-outlined">cancel</span>
+            </button>
+            <span role="tooltip"
+                  class="pointer-events-none absolute top-full right-0 mt-2 px-2 py-1 rounded-md bg-on-surface text-inverse-on-surface text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <%= t(".cancel_button") %>
+            </span>
+
+            <%# Confirmation modal: ESC + backdrop click close it; the
+                "Sí, cancelar" button is the only path that submits the
+                POST to /cancel. %>
+            <dialog data-cancel-dialog-target="dialog"
+                    data-action="click->cancel-dialog#backdropClick"
+                    class="w-[92vw] max-w-md rounded-xl bg-surface-container-lowest shadow-2xl p-0 m-auto backdrop:bg-on-surface/40 backdrop:backdrop-blur-sm">
+              <div class="p-6">
+                <div class="flex items-start gap-3 mb-5">
+                  <div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-headline text-headline-sm text-on-surface mb-1.5">
+                      <%= t(".cancel_dialog.title") %>
+                    </h3>
+                    <p class="text-body-md text-on-surface-variant leading-relaxed">
+                      <%# `_html` suffix already returns an html_safe string
+                          with interpolations escaped. No `.html_safe` needed
+                          (it would also trip Brakeman's XSS check). %>
+                      <%= t(".cancel_dialog.body_html", patente: @work_order.vehicle.patente) %>
+                    </p>
+                  </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-4 border-t border-outline-variant/40">
+                  <button type="button"
+                          data-action="click->cancel-dialog#close"
+                          class="px-4 py-2 rounded-lg text-label-md font-semibold text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer">
+                    <%= t(".cancel_dialog.keep") %>
+                  </button>
+                  <%= button_to t(".cancel_dialog.confirm"),
+                                cancel_work_order_path(@work_order),
+                                method: :post,
+                                form: { class: "inline" },
+                                class: "px-4 py-2 rounded-lg text-label-md font-semibold bg-error text-on-error hover:opacity-90 transition-opacity cursor-pointer" %>
+                </div>
+              </div>
+            </dialog>
+          </div>
+        <% end %>
+        <%# Agent runs modal (lives outside the broadcast target). %>
+        <dialog data-agent-runs-modal-target="dialog"
+                data-action="click->agent-runs-modal#backdropClick"
+                class="w-[92vw] max-w-5xl rounded-xl bg-surface-container-lowest shadow-2xl p-0 m-auto backdrop:bg-on-surface/40 backdrop:backdrop-blur-sm">
+          <div class="flex items-center justify-between border-b border-outline-variant px-6 py-4 sticky top-0 bg-surface-container-lowest">
+            <div>
+              <h3 class="font-headline text-headline-sm text-on-surface"><%= t(".agent_runs_modal_title") %></h3>
+              <p class="text-body-sm text-on-surface-variant mt-0.5"><%= t(".agent_runs_modal_subtitle") %></p>
+            </div>
+            <button type="button"
+                    data-action="click->agent-runs-modal#close"
+                    aria-label="<%= t(".agent_runs_modal_close") %>"
+                    class="text-on-surface-variant hover:text-on-surface text-2xl leading-none w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface-container transition">
+              ×
+            </button>
+          </div>
+          <div class="px-6 py-3 max-h-[75vh] overflow-y-auto">
+            <turbo-frame id="agent_runs_panel" data-agent-runs-modal-target="frame">
+              <p class="text-body-sm text-on-surface-variant py-3"><%= t(".agent_runs_loading") %></p>
+            </turbo-frame>
+          </div>
+        </dialog>
+      </div>
     </div>
-  </div>
+
+    <%# Motivo de ingreso (moved into the header card) ─────────── %>
+    <div class="mt-6 pt-6 border-t border-outline-variant/40">
+      <p class="text-label-md text-on-surface-variant uppercase mb-2"><%= t(".reason_heading") %></p>
+      <p class="text-body-md text-on-surface whitespace-pre-wrap"><%= @work_order.reason %></p>
+    </div>
+  </section>
+
+  <%# Cancelled banner — only shows when the WO is in the cancelled
+      status. Sits between the header card and the photos/analysis
+      sections so it's the first thing the user sees on a cancelled OT. %>
+  <% if @work_order.cancelled? %>
+    <div class="flex items-start gap-3 bg-zinc-100 border border-zinc-300 rounded-xl p-4 mb-6">
+      <span class="material-symbols-outlined text-zinc-600 mt-0.5">block</span>
+      <p class="text-body-md text-zinc-700 leading-relaxed">
+        <%= t(".cancelled_banner_html") %>
+      </p>
+    </div>
+  <% end %>
+
+  <%# Photos (only when attached) ─────────────────────────────────── %>
+  <% if @work_order.photos.attached? %>
+    <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 mb-6 custom-shadow">
+      <h2 class="text-label-md text-on-surface-variant uppercase mb-3">
+        <%= t(".photos_heading", count: @work_order.photos.count) %>
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <% @work_order.photos.each do |photo| %>
+          <%= link_to url_for(photo), target: "_blank", rel: "noopener", class: "block aspect-square rounded-lg overflow-hidden border border-outline-variant/40 hover:border-primary transition" do %>
+            <%= image_tag photo.variant(resize_to_fill: [400, 400]), class: "w-full h-full object-cover" %>
+          <% end %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <%# AI analysis — Turbo subscription + state-aware partial ──────── %>
+  <%= turbo_stream_from @work_order %>
+  <%= render "ai_analysis_state", work_order: @work_order %>
 </div>

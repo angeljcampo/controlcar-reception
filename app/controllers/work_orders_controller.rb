@@ -1,5 +1,5 @@
 class WorkOrdersController < ApplicationController
-  before_action :set_work_order, only: :show
+  before_action :set_work_order, only: %i[show reanalyze cancel]
 
   def index
     @work_orders = WorkOrder
@@ -25,6 +25,25 @@ class WorkOrdersController < ApplicationController
     end
   end
 
+  def reanalyze
+    if @work_order.cancelled?
+      redirect_to @work_order, alert: t("work_orders.cancel.cannot_reanalyze") and return
+    end
+
+    @work_order.update!(status: "analyzing")
+    AnalyzeWorkOrderJob.perform_later(@work_order.id)
+    redirect_to @work_order, notice: t(".queued")
+  end
+
+  def cancel
+    if @work_order.cancelled?
+      redirect_to @work_order, alert: t(".already_cancelled") and return
+    end
+
+    @work_order.update!(status: "cancelled")
+    redirect_to work_orders_path, notice: t(".success")
+  end
+
   private
 
   def set_work_order
@@ -34,8 +53,12 @@ class WorkOrdersController < ApplicationController
   end
 
   def work_order_attrs
+    # `:priority` is intentionally NOT permitted — the LLM owns that
+    # field. WorkOrders are created with the controller's default
+    # ("medium") and the AnalyzeWorkOrderJob overwrites it with the
+    # AI's verdict once the analysis completes.
     params.require(:work_order).permit(
-      :customer_name, :mileage, :reason, :priority, :patente, photos: []
+      :customer_name, :mileage, :reason, :patente, photos: []
     )
   end
 end

@@ -1,0 +1,13 @@
+<%# Rendered inside the Turbo Frame `agent_runs_panel` on the OT show page.
+    Also works as a full standalone page if visited directly. %>
+<turbo-frame id="agent_runs_panel">
+  <% if @agent_runs.any? %>
+    <ul class="space-y-0 divide-y divide-zinc-100">
+      <% @agent_runs.each do |run| %>
+        <%= render "agent_run", run: run %>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="text-sm text-zinc-500 italic py-2"><%= t(".empty") %></p>
+  <% end %>
+</turbo-frame>

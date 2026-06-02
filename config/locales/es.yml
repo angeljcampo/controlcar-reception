@@ -48,9 +48,14 @@ es:
       full_title: "Controlcar — Recepción Inteligente"
       app_short: "Controlcar"
       app_tagline: "/ Recepción Inteligente"
+      footer_tagline: "Controlcar Mecánica Inteligente"
       nav:
         work_orders: "Órdenes"
         sidekiq: "Sidekiq"
+      footer:
+        support: "Soporte"
+        docs: "Documentación"
+        privacy: "Privacidad"
 
   # Helpers Rails: f.submit sin texto y f.label override sólo cuando difiere
   # del nombre de atributo (caso photos: "Fotos del vehículo (opcional)").
@@ -73,11 +78,24 @@ es:
         cta: "Crear la primera"
     new:
       title: "Nueva Orden de Trabajo"
-      subtitle: "Registrá los datos del vehículo. La IA analizará el motivo después de guardar."
-      back: "← Volver"
+      subtitle: "Registrá los datos del vehículo. Nuestra IA analizará el motivo de ingreso para generar sugerencias de diagnóstico automáticas después de guardar."
+      back: "Volver"
+      guidance:
+        ai:
+          title: "IA de diagnóstico"
+          body: "Analizamos el historial del modelo contra el motivo de ingreso."
+        quality:
+          title: "Calidad pro"
+          body: "Documentá cada detalle para asegurar la confianza del cliente."
+        sync:
+          title: "Sincro nube"
+          body: "Toda la información se respalda instantáneamente."
     show:
-      back_to_list: "← Volver al listado"
+      back_to_list: "Volver al listado"
+      order_prefix: "Orden #"
+      priority_suffix: "Prioridad"
       mileage_unit: "km"
+      vehicle_unknown: "Sin datos del vehículo"
       vehicle_heading: "Vehículo"
       entered_at_heading: "Ingresada"
       reason_heading: "Motivo de ingreso"
@@ -85,19 +103,102 @@ es:
         one: "Fotos (%{count})"
         other: "Fotos (%{count})"
       ai_analysis_heading: "Análisis IA"
-      ai_analysis_existing: "(Análisis ya generado — UI viene en la siguiente fase)"
-      ai_analysis_pending: "Pendiente. Se generará automáticamente cuando se conecte el agente en la siguiente fase."
+      ai_analysis_pending: "Pendiente. Se generará automáticamente cuando se cree la orden."
+      ai_analysis_in_progress: "Analizando con IA"
+      ai_analysis_in_progress_hint: "Buscando historial del vehículo y armando el diagnóstico..."
+      reanalyze_button: "Re-analizar"
+      agent_runs_aria_label:
+        one: "Ver corrida del agente"
+        other: "Ver %{count} corridas del agente"
+      agent_runs_modal_title: "Corridas del agente"
+      agent_runs_modal_subtitle: "Click en una corrida para ver el detalle de respuestas LLM y tool calls"
+      agent_runs_modal_close: "Cerrar"
+      agent_runs_loading: "Cargando corridas..."
+      cancel_button: "Cancelar OT"
+      cancel_dialog:
+        title: "¿Cancelar esta orden?"
+        body_html: "Vas a cancelar la orden <span class=\"font-bold text-on-surface\">#%{patente}</span>. Esta acción la marca como cancelada y deshabilita el análisis. Puedes crear una nueva orden si lo necesitas."
+        confirm: "Sí, cancelar"
+        keep: "No, volver"
+      cancelled_banner_html: "Esta orden fue <span class=\"font-bold\">cancelada</span>. Las acciones de análisis están deshabilitadas."
+    # Strings consumidas por app/views/work_orders/_ai_analysis.html.erb.
+    # Rails lazy lookup en partials usa `work_orders.ai_analysis.<key>`.
+    ai_analysis:
+      ai_analysis_heading: "Análisis IA"
+      diagnosis_heading: "Diagnóstico de Inteligencia Artificial"
+      category_label: "Categoría"
+      suggested_priority_label: "Prioridad sugerida"
+      priority_reason_label: "Razón"
+      confidence_label: "Confianza"
+      last_analyzed: "Última"
+      reanalyze_button: "Re-analizar"
+      agent_runs_aria_label:
+        one: "Ver corrida del agente"
+        other: "Ver %{count} corridas del agente"
+      review_banner_title: "Revisión humana sugerida"
+      review_banner_text: "Los síntomas son ambiguos o la confianza es baja. Conviene que un mecánico revise antes de actuar."
+      stats_tokens: "tokens consumidos"
+      stats_cost: "costo"
+      stats_runs:
+        one: "corrida"
+        other: "corridas"
+      observations_heading: "Observaciones del Registro"
+      registered_by_html: "Generado por IA · %{model}"
+      possible_failures_heading: "Posibles fallas"
+      failures_count:
+        one: "%{count} hallazgo detectado"
+        other: "%{count} hallazgos detectados"
+      next_steps_heading: "Próximos pasos sugeridos"
+      full_guide_button: "Ver Guía Completa (%{count} Pasos)"
+      full_steps_heading: "Guía completa de diagnóstico"
+      full_steps_subtitle_html:
+        one: "%{count} paso recomendado por la IA para la orden <span class=\"font-bold text-primary\">#%{patente}</span>"
+        other: "%{count} pasos recomendados por la IA para la orden <span class=\"font-bold text-primary\">#%{patente}</span>"
+      step_label: "Paso %{n}"
+      required_tool_prefix: "Herramienta"
+      sources_heading: "Fuentes consultadas"
+      footer_model: "Modelo"
+      footer_tokens: "tokens"
+      footer_latency: "ms"
+    stats_strip:
+      tokens: "tokens consumidos"
+      runs:
+        one: "corrida"
+        other: "corridas"
+      last_run: "Última"
     form:
       patente_placeholder: "Ej: ABCD-12"
+      mileage_placeholder: "Ej: 45000"
+      mileage_unit: "KM"
+      customer_name_placeholder: "Nombre completo del titular"
+      ai_badge: "IA"
       reason_placeholder: "Ej: Vehículo tirita en ralentí y prende la luz de check engine al acelerar"
-      reason_hint: "Describí los síntomas con tus propias palabras. La IA va a usar este texto para diagnosticar."
-      photos_hint: "Adjuntá fotos de daños visibles, tablero o cualquier detalle relevante."
+      reason_hint: "Describe los síntomas con tus propias palabras. La IA usará este texto para diagnosticar."
+      photos_hint: "Adjunta fotos de daños visibles, tablero o cualquier detalle relevante."
+      upload:
+        title: "Adjunta tus fotos"
+        subtitle: "o haz clic para explorar fotos de daños, tablero o detalles relevantes."
+        browse: "Examinar"
       errors_heading:
         one: "Se encontró %{count} error:"
         other: "Se encontraron %{count} errores:"
       cancel: "Cancelar"
     create:
-      success: "Orden de trabajo creada correctamente."
+      success: "Orden de trabajo creada correctamente. Iniciando análisis con IA."
+    reanalyze:
+      queued: "Re-análisis encolado. Los resultados van a aparecer acá en unos segundos."
+    cancel:
+      success: "Orden cancelada correctamente."
+      already_cancelled: "La orden ya estaba cancelada."
+      cannot_reanalyze: "No se puede re-analizar una orden cancelada."
+
+  agent_runs:
+    index:
+      empty: "Aún no hay corridas registradas."
+    status:
+      succeeded: "Exitosa"
+      failed: "Fallida"
+      running: "En curso"
 
   activerecord:
     attributes:
@@ -133,3 +234,22 @@ es:
         analyzing: "Analizando"
         analyzed: "Analizado"
         in_review: "En revisión"
+        cancelled: "Cancelada"
+    ai_analysis:
+      category:
+        engine: "Motor"
+        transmission: "Transmisión"
+        brakes: "Frenos"
+        suspension: "Suspensión"
+        electrical: "Sistema eléctrico"
+        cooling: "Refrigeración"
+        fuel: "Combustible"
+        exhaust: "Escape"
+        tires: "Neumáticos"
+        body: "Carrocería"
+        diagnosis_needed: "Diagnóstico necesario"
+        other: "Otro"
+      probability:
+        high: "Alta"
+        medium: "Media"
+        low: "Baja"

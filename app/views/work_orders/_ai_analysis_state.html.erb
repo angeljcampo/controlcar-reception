@@ -1,0 +1,37 @@
+<%# State-aware container for the AI analysis section. Wrapped in a div
+    with a stable ID so the AnalyzeWorkOrderJob can broadcast updates to
+    it via Turbo Streams without a page refresh. Each state has its own
+    enter animation so re-analyzing feels like a transformation. %>
+<div id="<%= dom_id(work_order, :analysis) %>">
+  <% case work_order.status %>
+  <% when "analyzing" %>
+    <section class="bg-surface-container-lowest border border-outline-variant rounded-xl mb-6 animate-fade-in-up">
+      <div class="flex flex-col items-center justify-center py-16 gap-3">
+        <div class="relative">
+          <div class="absolute inset-0 rounded-full bg-primary-fixed-dim animate-ping opacity-60"></div>
+          <svg class="relative animate-spin h-10 w-10 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+            <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+        </div>
+        <p class="font-headline text-headline-sm text-on-surface"><%= t("work_orders.show.ai_analysis_in_progress") %></p>
+        <p class="text-body-sm text-on-surface-variant"><%= t("work_orders.show.ai_analysis_in_progress_hint") %></p>
+      </div>
+    </section>
+  <% else %>
+    <% if work_order.ai_analysis %>
+      <div class="animate-fade-in-up">
+        <%# Absolute partial path so Turbo Stream broadcasts (which render
+            this partial without a controller context) can find the inner
+            partial. Relative "ai_analysis" only resolves when there's a
+            wrapping controller — broadcasts don't have one. %>
+        <%= render "work_orders/ai_analysis", work_order: work_order %>
+      </div>
+    <% else %>
+      <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 mb-6">
+        <h2 class="font-headline text-headline-sm text-on-surface uppercase tracking-wide mb-2"><%= t("work_orders.show.ai_analysis_heading") %></h2>
+        <p class="text-body-sm text-on-surface-variant italic"><%= t("work_orders.show.ai_analysis_pending") %></p>
+      </section>
+    <% end %>
+  <% end %>
+</div>

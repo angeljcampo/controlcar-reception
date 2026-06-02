@@ -1,0 +1,260 @@
+<%# Renders the structured AI analysis for a WorkOrder.
+    Expects `work_order` with a persisted ai_analysis. %>
+<% analysis = work_order.ai_analysis %>
+<% next_steps_sorted = (analysis.next_steps.presence || []).sort_by { |s| s["order"].to_i } %>
+<% confidence_degrees = (analysis.confidence.to_f * 360).round %>
+
+<div class="grid grid-cols-12 gap-6">
+  <%# ═══════════════ LEFT COLUMN (col-span-8) ═══════════════ %>
+  <div class="col-span-12 lg:col-span-8 space-y-6">
+
+    <%# ── AI Analysis Card ───────────────────────────────────── %>
+    <article class="bg-primary/5 border border-primary/10 rounded-xl p-6 flex flex-col md:flex-row gap-6 relative overflow-hidden">
+      <%# Decorative blurred halo in the top-right corner %>
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+
+      <%# Confidence donut ───────────────────────────────────── %>
+      <% if analysis.confidence.present? %>
+        <div class="flex flex-col items-center justify-center relative z-10 flex-shrink-0">
+          <div class="relative w-32 h-32 rounded-full"
+               style="background: conic-gradient(var(--color-primary) <%= confidence_degrees %>deg, var(--color-surface-container-high) 0deg);">
+            <div class="absolute inset-2 bg-surface rounded-full flex flex-col items-center justify-center">
+              <span class="font-headline text-headline-md text-primary leading-none"><%= confidence_percentage(analysis) %>%</span>
+              <span class="text-label-md text-on-surface-variant mt-1"><%= t(".confidence_label") %></span>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Diagnosis content ──────────────────────────────────── %>
+      <div class="flex-1 space-y-3 relative z-10 min-w-0">
+        <%# Top row: category pill + review banner %>
+        <div class="flex justify-between items-center gap-2 flex-wrap">
+          <span class="text-label-md bg-primary-fixed text-primary px-3 py-1 rounded-full">
+            <%= category_label(analysis.category) %>
+          </span>
+          <% if analysis.requires_human_review %>
+            <div class="flex items-center gap-2 text-error bg-error-container/50 px-3 py-1 rounded-full">
+              <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+              <span class="text-label-md"><%= t(".review_banner_title") %></span>
+            </div>
+          <% end %>
+        </div>
+
+        <h3 class="font-headline text-headline-sm text-primary"><%= t(".diagnosis_heading") %></h3>
+
+        <% if analysis.priority_reason.present? %>
+          <p class="text-body-md text-on-surface-variant leading-relaxed"><%= analysis.priority_reason %></p>
+        <% end %>
+      </div>
+    </article>
+
+    <%# ── Stats row (subtle, just below the AI card) ────────── %>
+    <% if work_order.agent_runs.any? %>
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm text-on-surface-variant px-1">
+        <span><strong class="text-on-surface"><%= number_with_delimiter(work_order.ai_total_tokens) %></strong> <%= t(".stats_tokens") %></span>
+        <span aria-hidden="true">·</span>
+        <span><strong class="text-on-surface"><%= format_cents(work_order.ai_total_cost_cents) %></strong> <%= t(".stats_cost") %></span>
+        <span aria-hidden="true">·</span>
+        <span><strong class="text-on-surface"><%= work_order.agent_runs.size %></strong> <%= t(".stats_runs", count: work_order.agent_runs.size) %></span>
+      </div>
+    <% end %>
+
+    <%# ── Posibles fallas ───────────────────────────────────── %>
+    <% if analysis.possible_failures.present? && analysis.possible_failures.any? %>
+      <section>
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h2 class="font-headline text-headline-md text-on-surface"><%= t(".possible_failures_heading") %></h2>
+          <span class="text-on-surface-variant text-body-sm">
+            <%= t(".failures_count", count: analysis.possible_failures.size) %>
+          </span>
+        </div>
+        <div class="space-y-4">
+          <% analysis.possible_failures.each_with_index do |failure, i| %>
+            <% muted = failure["probability"] == "low" ? "opacity-75 grayscale hover:grayscale-0 hover:opacity-100" : "" %>
+            <div class="bg-surface-container-lowest border border-outline-variant/30 p-5 rounded-xl custom-shadow hover:custom-shadow-hover transition-all flex gap-4 <%= muted %>">
+              <div class="w-10 h-10 shrink-0 <%= probability_circle_class(failure["probability"]) %> rounded-full flex items-center justify-center font-bold">
+                <%= i + 1 %>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex justify-between items-start mb-1.5 gap-3">
+                  <h4 class="font-headline text-headline-sm text-on-surface flex-1 min-w-0"><%= failure["component"] %></h4>
+                  <span class="<%= probability_label_color(failure["probability"]) %> text-label-md font-bold uppercase flex-shrink-0 pt-1">
+                    <%= probability_label(failure["probability"]) %>
+                  </span>
+                </div>
+                <% if failure["reasoning"].present? %>
+                  <p class="text-body-sm text-on-surface-variant"><%= failure["reasoning"] %></p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  </div>
+
+  <%# ═══════════════ RIGHT COLUMN (col-span-4) ═══════════════ %>
+  <div class="col-span-12 lg:col-span-4 space-y-6">
+
+    <%# ── Próximos Pasos card (first 4 + "Ver guía completa" modal) ── %>
+    <% if next_steps_sorted.any? %>
+      <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 p-6 custom-shadow"
+           data-controller="full-steps-modal">
+        <h2 class="font-headline text-headline-sm text-on-surface mb-5 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">assignment_turned_in</span>
+          <%= t(".next_steps_heading") %>
+        </h2>
+        <div class="space-y-5">
+          <% next_steps_sorted.first(4).each do |step| %>
+            <div class="flex gap-4">
+              <span class="w-8 h-8 rounded-full bg-primary-fixed text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                <%= step["order"] %>
+              </span>
+              <div class="space-y-1.5 min-w-0">
+                <p class="text-body-sm text-on-surface leading-snug"><%= step["action"] %></p>
+                <% if step["required_tool"].present? %>
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] font-bold text-outline uppercase tracking-wider"><%= t(".required_tool_prefix") %>:</span>
+                    <span class="bg-primary/10 text-primary px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"><%= step["required_tool"] %></span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <% if next_steps_sorted.size > 4 %>
+          <button type="button"
+                  data-action="click->full-steps-modal#open"
+                  class="block w-full mt-6 border-2 border-primary text-primary py-2 rounded-xl font-bold text-center hover:bg-primary/5 transition-colors text-body-sm cursor-pointer">
+            <%= t(".full_guide_button", count: next_steps_sorted.size) %>
+          </button>
+
+          <%# Full steps timeline — rendered inside a native <dialog>.
+              showModal() promotes it to the top layer so it overlays the
+              whole viewport regardless of its DOM position. %>
+          <dialog data-full-steps-modal-target="dialog"
+                  data-action="click->full-steps-modal#backdropClick"
+                  class="w-[92vw] max-w-3xl max-h-[90vh] rounded-xl bg-surface-container-lowest shadow-2xl p-0 m-auto backdrop:bg-on-surface/40 backdrop:backdrop-blur-sm">
+            <div class="flex flex-col max-h-[90vh]">
+              <%# Modal header — title + IA subtitle with patente highlight %>
+              <header class="flex justify-between items-start px-6 py-5 border-b border-outline-variant bg-surface-container-lowest">
+                <div>
+                  <h1 class="font-headline text-headline-md text-on-surface">
+                    <%= t(".full_steps_heading") %>
+                  </h1>
+                  <div class="flex items-center gap-2 mt-1.5">
+                    <span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+                    <p class="text-body-sm text-on-surface-variant">
+                      <%# Key ends in `_html` → Rails already returns
+                          html_safe with %{patente} HTML-escaped. Calling
+                          .html_safe again is redundant and Brakeman flags
+                          it as a weak-confidence XSS warning. %>
+                      <%= t(".full_steps_subtitle_html",
+                             count: next_steps_sorted.size,
+                             patente: work_order.vehicle.patente) %>
+                    </p>
+                  </div>
+                </div>
+                <button type="button"
+                        data-action="click->full-steps-modal#close"
+                        aria-label="<%= t("work_orders.show.agent_runs_modal_close") %>"
+                        class="p-2 hover:bg-surface-container rounded-full transition-colors text-on-surface-variant cursor-pointer">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </header>
+
+              <%# Scrollable steps list. items-center on each <li> centers
+                  the numbered circle vertically against its card. The line
+                  is split in two halves (.step-line-top / .step-line-bottom)
+                  applied conditionally so the first step has no upper line
+                  and the last step has no lower line. Both halves extend
+                  ±24px into the space-y-6 gap, overlapping there to form
+                  one continuous timeline from circle to circle. %>
+              <ol class="flex-1 overflow-y-auto px-6 py-6 space-y-6 bg-surface-container-lowest">
+                <% next_steps_sorted.each_with_index do |step, i| %>
+                  <% is_first = (i == 0) %>
+                  <% is_last = (i == next_steps_sorted.size - 1) %>
+                  <% title, desc = split_step_action(step["action"]) %>
+                  <li class="relative flex items-center gap-6 <%= 'step-line-top' unless is_first %> <%= 'step-line-bottom' unless is_last %>">
+                    <%# Numbered circle. flex-none + explicit w-10 h-10 keep
+                        it a perfect 40×40 regardless of flex layout pressure. %>
+                    <div class="z-10 flex-none w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-base shadow-md">
+                      <%= step["order"] %>
+                    </div>
+
+                    <%# Step card. Background is surface-container-low so it
+                        reads as a distinct surface from the modal body
+                        (which is surface-container-lowest = pure white). %>
+                    <article class="diagnostic-card flex-1 min-w-0 bg-surface-container-low border border-outline-variant/60 rounded-xl p-5">
+                      <% if title.present? %>
+                        <h3 class="font-headline text-headline-sm text-on-surface mb-2">
+                          <%= title %>
+                        </h3>
+                      <% end %>
+                      <p class="text-body-md text-on-surface-variant leading-relaxed <%= 'mb-4' if step['required_tool'].present? %>">
+                        <%= desc %>
+                      </p>
+
+                      <% if step["required_tool"].present? %>
+                        <%# Tool chips — split LLM's comma/semicolon list
+                            into individual pills with a wrench icon. %>
+                        <% tools = step["required_tool"].split(/\s*[,;]\s*/).reject(&:blank?) %>
+                        <div class="flex flex-wrap gap-2 pt-3 border-t border-outline-variant/30">
+                          <% tools.each do |tool| %>
+                            <span class="inline-flex items-center gap-1.5 bg-secondary-container/30 px-3 py-1 rounded-full text-on-secondary-fixed-variant text-label-md font-semibold">
+                              <span class="material-symbols-outlined text-[14px]">handyman</span>
+                              <%= tool %>
+                            </span>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </article>
+                  </li>
+                <% end %>
+              </ol>
+            </div>
+          </dialog>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Observaciones del Registro ─────────────────────────── %>
+    <% if analysis.observations.present? %>
+      <div class="bg-surface-container-high rounded-xl p-6 border border-outline-variant/40">
+        <h3 class="text-label-md text-on-surface-variant uppercase tracking-widest mb-4"><%= t(".observations_heading") %></h3>
+        <div class="bg-surface-container-lowest/70 rounded-lg p-4 text-body-sm italic text-on-surface-variant border border-surface-container-lowest">
+          "<%= analysis.observations %>"
+        </div>
+        <% if (run = work_order.latest_agent_run) %>
+          <div class="mt-4 flex items-center justify-end">
+            <span class="text-label-md text-outline">
+              <%= t(".registered_by_html", model: tag.code(run.ai_model, class: "font-medium")) %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<%# ═══════════════ Sources (RAG citations, empty until Phase 3) ═══════════════ %>
+<% if analysis.sources.present? && analysis.sources.any? %>
+  <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl mt-6 overflow-hidden custom-shadow">
+    <header class="px-6 py-4 bg-surface-container-low border-b border-outline-variant/40">
+      <h2 class="font-headline text-headline-sm text-on-surface"><%= t(".sources_heading") %></h2>
+    </header>
+    <ul class="divide-y divide-outline-variant/40">
+      <% analysis.sources.each do |source| %>
+        <li class="px-6 py-3">
+          <span class="font-medium text-on-surface text-body-sm"><%= source["document_title"] %></span>
+          <span class="text-on-surface-variant text-body-sm">· pág. <%= source["page"] %></span>
+          <% if source["relevant_excerpt"].present? %>
+            <p class="text-on-surface-variant mt-1 italic text-body-sm">"<%= source["relevant_excerpt"] %>"</p>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>

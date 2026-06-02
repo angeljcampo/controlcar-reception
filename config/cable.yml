@@ -1,9 +1,12 @@
-# Async adapter only works within the same process, so for manually triggering cable updates from a console,
-# and seeing results in the browser, you must do so from the web console (running inside the dev process),
-# not a terminal started via bin/rails console! Add "console" to any action or any ERB template view
-# to make the web console appear.
+# In development we use solid_cable on the primary DB (no `connects_to`,
+# so it falls back to ActiveRecord::Base's connection). We avoid `async`
+# (single-process only) and the `postgresql` adapter (LISTEN/NOTIFY caps
+# payloads at 8 KB, which is too small for Turbo Stream broadcasts of the
+# full AI analysis HTML — they were getting dropped silently).
 development:
-  adapter: async
+  adapter: solid_cable
+  polling_interval: 0.1.seconds
+  message_retention: 1.day
 
 test:
   adapter: test
