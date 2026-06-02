@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_01_220000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_02_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -78,19 +78,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_220000) do
   end
 
   create_table "knowledge_chunks", force: :cascade do |t|
+    t.text "breadcrumb"
     t.integer "chunk_index", null: false
     t.text "content", null: false
+    t.virtual "content_tsv", type: :tsvector, as: "(setweight(to_tsvector('spanish'::regconfig, COALESCE(breadcrumb, ''::text)), 'A'::\"char\") || setweight(to_tsvector('spanish'::regconfig, COALESCE(content, ''::text)), 'B'::\"char\"))", stored: true
     t.datetime "created_at", null: false
     t.vector "embedding", limit: 1536
     t.bigint "knowledge_document_id", null: false
+    t.jsonb "metadata", default: {}, null: false
     t.integer "page_number"
     t.integer "tokens_count"
     t.datetime "updated_at", null: false
+    t.index ["content_tsv"], name: "index_knowledge_chunks_on_content_tsv", using: :gin
     t.index ["embedding"], name: "index_knowledge_chunks_on_embedding", opclass: :vector_cosine_ops, using: :hnsw
     t.index ["knowledge_document_id"], name: "index_knowledge_chunks_on_knowledge_document_id"
+    t.index ["metadata"], name: "index_knowledge_chunks_on_metadata", using: :gin
   end
 
   create_table "knowledge_documents", force: :cascade do |t|
+    t.string "chunking_strategy", default: "token_window", null: false
     t.datetime "created_at", null: false
     t.integer "embedding_cost_cents", default: 0, null: false
     t.integer "embedding_tokens", default: 0, null: false
@@ -100,7 +106,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_220000) do
     t.integer "total_chunks", default: 0, null: false
     t.integer "total_pages"
     t.datetime "updated_at", null: false
+    t.index ["chunking_strategy"], name: "index_knowledge_documents_on_chunking_strategy"
     t.index ["status"], name: "index_knowledge_documents_on_status"
+  end
+
+  create_table "retrieval_runs", force: :cascade do |t|
+    t.bigint "agent_run_id", null: false
+    t.decimal "best_vector_distance", precision: 6, scale: 4
+    t.datetime "created_at", null: false
+    t.integer "embedding_tokens", default: 0, null: false
+    t.integer "latency_ms", default: 0, null: false
+    t.text "query", null: false
+    t.jsonb "results", default: [], null: false
+    t.integer "strong_matches_count", default: 0, null: false
+    t.boolean "threshold_passed", default: false, null: false
+    t.integer "top_k", null: false
+    t.integer "total_matches", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["agent_run_id"], name: "index_retrieval_runs_on_agent_run_id"
   end
 
   create_table "solid_cable_messages", force: :cascade do |t|
@@ -127,7 +150,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_220000) do
     t.datetime "created_at", null: false
     t.string "customer_name", null: false
     t.integer "mileage"
-    t.string "priority", default: "medium", null: false
+    t.string "priority"
     t.text "reason", null: false
     t.string "status", default: "draft", null: false
     t.datetime "updated_at", null: false
@@ -142,5 +165,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_220000) do
   add_foreign_key "agent_runs", "work_orders"
   add_foreign_key "ai_analyses", "work_orders"
   add_foreign_key "knowledge_chunks", "knowledge_documents"
+  add_foreign_key "retrieval_runs", "agent_runs"
   add_foreign_key "work_orders", "vehicles"
 end

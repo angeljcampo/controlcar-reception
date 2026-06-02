@@ -11,7 +11,9 @@ class WorkOrdersController < ApplicationController
   end
 
   def new
-    @work_order = WorkOrder.new(priority: "medium")
+    # Priority queda en blanco hasta que el LLM lo decida en
+    # AnalyzeWorkOrderJob. El form ya no expone el campo al usuario.
+    @work_order = WorkOrder.new
   end
 
   def create

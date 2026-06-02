@@ -18,6 +18,26 @@
         <p style="font-size: 13.5px; color: var(--wof-muted);"><%= t("work_orders.show.ai_analysis_in_progress_hint") %></p>
       </div>
     </section>
+
+    <%# Fallback de polling: si Turbo Stream / Cable no se actualiza
+        (cable disconnect, broadcast perdido, etc.), recarga la página
+        cada 10s mientras el partial "analyzing" siga visible. Cuando el
+        broadcast llega y reemplaza el partial, el setInterval queda
+        huérfano pero no daña — el check de spinner evita reload-loop. %>
+    <script data-turbo-temporary>
+      (function () {
+        var checkInterval = setInterval(function () {
+          var spinner = document.querySelector('#<%= dom_id(work_order, :analysis) %> .animate-spin');
+          if (!spinner) {
+            clearInterval(checkInterval);
+            return;
+          }
+          // Si después de 10s seguimos viendo el spinner, reload.
+          // Asume broadcast/cable está caído. Es la red de seguridad.
+          location.reload();
+        }, 10000);
+      })();
+    </script>
   <% else %>
     <% if work_order.ai_analysis %>
       <div class="animate-fade-in-up">
