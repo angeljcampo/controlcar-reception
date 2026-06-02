@@ -174,3 +174,203 @@
   transform: translateY(-2px);
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   .wof  —  "Garage" dark theme for /work_orders/new (Claude Design handoff)
+   ════════════════════════════════════════════════════════════════════════
+   Self-contained, scoped to elements inside .wof so the rest of the app
+   (light MD3 theme) stays untouched. The wrapper sets CSS variables that
+   the descendant selectors consume — keeps the rules DRY and themable. */
+.wof {
+  --wof-app-bg:        #0A0D12;
+  --wof-panel:         #11161E;
+  --wof-panel-line:    #212A35;
+  --wof-field-bg:      #161D27;
+  --wof-field-bg-focus:#1A222E;
+  --wof-field-line:    #2A3542;
+  --wof-ink:           #EAF0F7;
+  --wof-ink-soft:      #B6C0CD;
+  --wof-muted:         #7E8A99;
+  --wof-faint:         #5C6877;
+  --wof-accent:        #C2F94E;
+  --wof-accent-ink:    #0A0D12;
+  --wof-accent-soft:   rgba(194, 249, 78, 0.14);
+  --wof-success:       #7DE38B;
+  --wof-warn:          #FFC24B;
+  --wof-danger:        #FF7676;
+
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  letter-spacing: -0.1px;
+  color: var(--wof-ink);
+}
+.wof .wof-mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+/* Layout chrome ──────────────────────────────────────────────────────── */
+.wof-page {
+  background: var(--wof-app-bg);
+  min-height: 100vh;
+  padding: 34px 24px 56px;
+  display: flex;
+  justify-content: center;
+}
+.wof-container { width: 100%; max-width: 880px; }
+
+/* Header ─────────────────────────────────────────────────────────────── */
+.wof-header { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 24px; }
+.wof-back {
+  display: inline-flex; align-items: center; gap: 5px;
+  color: var(--wof-muted); cursor: pointer;
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.3px;
+  margin-bottom: 10px; text-decoration: none;
+}
+.wof-back:hover { color: var(--wof-ink-soft); }
+.wof-title { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.8px; line-height: 1.05; color: var(--wof-ink); }
+.wof-subtitle { margin: 8px 0 0; font-size: 14px; color: var(--wof-muted); max-width: 560px; line-height: 1.45; }
+.wof-folio {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 10px;
+  background: var(--wof-panel); border: 1px solid var(--wof-panel-line);
+}
+.wof-folio-label { font-size: 11px; color: var(--wof-faint); font-family: "JetBrains Mono", monospace; letter-spacing: 0.5px; }
+.wof-folio-value { font-size: 14px; font-weight: 700; font-family: "JetBrains Mono", monospace; color: var(--wof-ink-soft); }
+
+/* Form card ──────────────────────────────────────────────────────────── */
+.wof-card {
+  background: var(--wof-panel);
+  border: 1px solid var(--wof-panel-line);
+  border-radius: 16px;
+  padding: 28px 30px;
+}
+
+/* Vehicle-found banner ───────────────────────────────────────────────── */
+.wof-banner {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px; padding: 13px 16px;
+  background: var(--wof-accent-soft);
+  border: 1px solid rgba(194, 249, 78, 0.33);
+  border-radius: 11px;
+}
+.wof-banner-icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--wof-accent); color: var(--wof-accent-ink);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.wof-banner-title { font-size: 13.5px; font-weight: 700; color: var(--wof-ink); }
+.wof-banner-meta  { font-size: 12.5px; color: var(--wof-ink-soft); margin-top: 1px; }
+
+/* Section title ──────────────────────────────────────────────────────── */
+.wof-section { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.wof-section-icon {
+  width: 26px; height: 26px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--wof-accent-soft); color: var(--wof-accent);
+}
+.wof-section-name { font-size: 15.5px; font-weight: 700; color: var(--wof-ink); letter-spacing: -0.2px; white-space: nowrap; flex-shrink: 0; }
+.wof-section-rule { flex: 1; height: 1px; background: var(--wof-panel-line); }
+.wof-section-num  { font-size: 11px; font-family: "JetBrains Mono", monospace; color: var(--wof-faint); }
+
+/* Field group ────────────────────────────────────────────────────────── */
+.wof-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; margin-bottom: 28px; }
+.wof-grid-2-stack { margin-bottom: 28px; }
+.wof-label-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.wof-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--wof-muted); white-space: nowrap;
+}
+.wof-hint { font-size: 11px; color: var(--wof-faint); white-space: nowrap; }
+
+.wof-input-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--wof-field-bg);
+  border: 1.5px solid var(--wof-field-line);
+  border-radius: 10px;
+  padding: 0 14px; height: 48px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.wof-input-wrap.wof-textarea-wrap {
+  align-items: flex-start;
+  padding: 12px 14px;
+  height: auto;
+}
+.wof-input-wrap:focus-within {
+  background: var(--wof-field-bg-focus);
+  border-color: var(--wof-accent);
+}
+.wof-input-wrap input,
+.wof-input-wrap textarea {
+  width: 100%; border: none; background: transparent; outline: none;
+  color: var(--wof-ink); font-family: inherit;
+  font-size: 15.5px; font-weight: 500; line-height: 1.5;
+}
+.wof-input-wrap input::placeholder,
+.wof-input-wrap textarea::placeholder { color: var(--wof-faint); }
+.wof-input-wrap textarea { resize: none; }
+.wof-input-wrap.wof-mono input { font-family: "JetBrains Mono", monospace; letter-spacing: 1px; }
+.wof-input-suffix { font-size: 12.5px; color: var(--wof-faint); font-family: "JetBrains Mono", monospace; white-space: nowrap; }
+
+/* Hint under textarea (AI feed) ──────────────────────────────────────── */
+.wof-motivo-hint {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 8px; font-size: 12.5px; color: var(--wof-muted);
+}
+.wof-motivo-hint .material-symbols-outlined { font-size: 16px; color: var(--wof-accent); }
+
+/* Photos dropzone ────────────────────────────────────────────────────── */
+.wof-drop {
+  display: flex; align-items: center; justify-content: center; gap: 11px;
+  border: 1.5px dashed var(--wof-field-line);
+  border-radius: 11px; background: var(--wof-field-bg);
+  color: var(--wof-muted);
+  padding: 18px;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.wof-drop:hover { border-color: var(--wof-accent); background: var(--wof-field-bg-focus); }
+.wof-drop-title { font-size: 13.5px; font-weight: 600; color: var(--wof-ink-soft); text-align: left; }
+.wof-drop-meta  { font-weight: 400; font-size: 12px; color: var(--wof-faint); }
+
+/* Divider + actions ──────────────────────────────────────────────────── */
+.wof-divider { height: 1px; background: var(--wof-panel-line); margin: 28px 0 22px; }
+.wof-actions { display: flex; align-items: center; gap: 12px; }
+.wof-cancel {
+  background: transparent; border: none;
+  color: var(--wof-muted); cursor: pointer;
+  font-size: 14.5px; font-weight: 600;
+  padding: 12px 16px; border-radius: 10px;
+  text-decoration: none;
+}
+.wof-cancel:hover { color: var(--wof-ink-soft); background: var(--wof-field-bg); }
+.wof-submit {
+  border: none; border-radius: 11px; cursor: pointer;
+  padding: 0 24px; height: 48px; min-width: 176px;
+  background: var(--wof-accent); color: var(--wof-accent-ink);
+  font-size: 15px; font-weight: 700; letter-spacing: -0.2px;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  box-shadow: 0 8px 22px rgba(194, 249, 78, 0.2);
+  transition: background .2s ease, transform .05s ease;
+}
+.wof-submit:hover { background: #d5fb72; }
+.wof-submit:active { transform: translateY(1px); }
+.wof-submit .material-symbols-outlined { font-size: 18px; }
+
+/* Errors panel ───────────────────────────────────────────────────────── */
+.wof-errors {
+  background: rgba(255, 118, 118, 0.08);
+  border: 1px solid rgba(255, 118, 118, 0.35);
+  color: var(--wof-danger);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+.wof-errors h3 {
+  margin: 0 0 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--wof-danger);
+}
+.wof-errors ul { margin: 0; padding-left: 18px; }
+
+/* Responsive: stack the 2-col grid on small screens */
+@media (max-width: 640px) {
+  .wof-grid-2 { grid-template-columns: 1fr; }
+}

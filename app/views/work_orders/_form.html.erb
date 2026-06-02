@@ -1,17 +1,18 @@
-<%# Form card aligned with the Stitch MD3 reference. Inputs use the
-    surface-container-low fill + outline-variant border treatment, and
-    the file_field is layered as an invisible overlay on a styled
-    dropzone so clicking anywhere on the zone opens the file picker. %>
+<%# Garage theme (dark) form — Claude Design handoff. All styling lives in
+    application.css under the `.wof-*` selectors, scoped by the wrapping
+    `.wof` div in new.html.erb. The Rails wiring (form_with, file_field,
+    Stimulus vehicle-lookup) is unchanged — only the structure +
+    presentation match the design. %>
 <%= form_with model: work_order,
               multipart: true,
-              data: { controller: "vehicle-lookup" },
-              class: "space-y-10 bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant p-6 lg:p-10" do |f| %>
+              data: { controller: "vehicle-lookup" } do |f| %>
+
+  <%# Validation errors — only visible on re-render after a failed POST.
+      Styled to match the Garage theme (danger color + soft red bg). %>
   <% if work_order.errors.any? %>
-    <div class="bg-error-container border border-error/30 rounded-lg p-4">
-      <h3 class="text-label-md font-semibold text-on-error-container mb-2 uppercase tracking-wider">
-        <%= t(".errors_heading", count: work_order.errors.count) %>
-      </h3>
-      <ul class="text-body-sm text-on-error-container list-disc list-inside space-y-1">
+    <div class="wof-errors">
+      <h3><%= t(".errors_heading", count: work_order.errors.count) %></h3>
+      <ul>
         <% work_order.errors.full_messages.each do |msg| %>
           <li><%= msg %></li>
         <% end %>
@@ -19,112 +20,177 @@
     </div>
   <% end %>
 
-  <%# Priority is intentionally NOT in the form: the LLM owns that field.
-      The job updates WorkOrder.priority from the analysis once it runs.
-      Vehicle metadata (make/model/year) are virtual attrs on WorkOrder
-      that the create service forwards onto Vehicle. The vehicle-lookup
-      Stimulus controller autocompletes them when the patente already
-      exists in the DB — see app/javascript/controllers/vehicle_lookup_controller.js %>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
-    <div class="space-y-3">
-      <%= f.label :patente, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
-      <%= f.text_field :patente,
-                       value: work_order.patente || work_order.vehicle&.patente,
-                       placeholder: t(".patente_placeholder"),
-                       autofocus: true,
-                       data: {
-                         vehicle_lookup_target: "patente",
-                         action: "change->vehicle-lookup#fetch"
-                       },
-                       class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60 font-mono uppercase" %>
+  <%# ── Vehicle-found banner ───────────────────────────────────────
+      Hidden by default. The Stimulus controller flips `hidden` on
+      success of /vehicles/lookup and fills in the patente + meta. %>
+  <div class="wof-banner hidden" data-vehicle-lookup-target="banner">
+    <span class="wof-banner-icon">
+      <span class="material-symbols-outlined" style="font-size:16px">check</span>
+    </span>
+    <div class="flex-1 min-w-0">
+      <div class="wof-banner-title">
+        <%= t(".banner_title") %> ·
+        <span class="wof-mono" data-vehicle-lookup-target="bannerPatente"></span>
+      </div>
+      <div class="wof-banner-meta" data-vehicle-lookup-target="bannerMeta"></div>
+    </div>
+  </div>
+
+  <%# ── 01 · Datos del vehículo ────────────────────────────────── %>
+  <div class="wof-section">
+    <span class="wof-section-icon">
+      <span class="material-symbols-outlined" style="font-size:15px">directions_car</span>
+    </span>
+    <span class="wof-section-name"><%= t(".section.vehicle") %></span>
+    <span class="wof-section-rule"></span>
+    <span class="wof-section-num">01</span>
+  </div>
+
+  <div class="wof-grid-2">
+    <%# Patente — autocompletes the rest of the vehicle fields via Stimulus %>
+    <div>
+      <div class="wof-label-row">
+        <%= f.label :patente, class: "wof-label" %>
+        <span class="wof-hint"><%= t(".hint.autocomplete") %></span>
+      </div>
+      <div class="wof-input-wrap wof-mono">
+        <%= f.text_field :patente,
+                         value: work_order.patente || work_order.vehicle&.patente,
+                         placeholder: t(".patente_placeholder"),
+                         autofocus: true,
+                         data: {
+                           vehicle_lookup_target: "patente",
+                           action: "change->vehicle-lookup#fetch"
+                         } %>
+      </div>
     </div>
 
-    <div class="space-y-3">
-      <%= f.label :mileage, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
-      <div class="relative">
+    <%# Kilometraje %>
+    <div>
+      <div class="wof-label-row">
+        <%= f.label :mileage, class: "wof-label" %>
+      </div>
+      <div class="wof-input-wrap">
         <%= f.number_field :mileage,
                            min: 0,
-                           placeholder: t(".mileage_placeholder"),
-                           class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60" %>
+                           placeholder: t(".mileage_placeholder") %>
+        <span class="wof-input-suffix"><%= t("work_orders.show.mileage_unit") %></span>
       </div>
     </div>
 
-    <%# Vehicle metadata row — make / model / year. Autocompleted by the
-        lookup controller when the patente is already on file. %>
-    <div class="space-y-3">
-      <%= f.label :make, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
-      <%= f.text_field :make,
-                       placeholder: t(".make_placeholder"),
-                       data: { vehicle_lookup_target: "make" },
-                       class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60" %>
+    <%# Marca %>
+    <div>
+      <div class="wof-label-row">
+        <%= f.label :make, class: "wof-label" %>
+      </div>
+      <div class="wof-input-wrap">
+        <%= f.text_field :make,
+                         placeholder: t(".make_placeholder"),
+                         data: { vehicle_lookup_target: "make" } %>
+      </div>
     </div>
 
-    <div class="space-y-3">
-      <%= f.label :model, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
-      <%= f.text_field :model,
-                       placeholder: t(".model_placeholder"),
-                       data: { vehicle_lookup_target: "model" },
-                       class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60" %>
+    <%# Modelo %>
+    <div>
+      <div class="wof-label-row">
+        <%= f.label :model, class: "wof-label" %>
+      </div>
+      <div class="wof-input-wrap">
+        <%= f.text_field :model,
+                         placeholder: t(".model_placeholder"),
+                         data: { vehicle_lookup_target: "model" } %>
+      </div>
     </div>
 
-    <div class="space-y-3">
-      <%= f.label :year, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
-      <%= f.number_field :year,
-                         min: 1901,
-                         max: Date.current.year + 1,
-                         placeholder: t(".year_placeholder"),
-                         data: { vehicle_lookup_target: "year" },
-                         class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60" %>
+    <%# Año %>
+    <div>
+      <div class="wof-label-row">
+        <%= f.label :year, class: "wof-label" %>
+      </div>
+      <div class="wof-input-wrap wof-mono">
+        <%= f.number_field :year,
+                           min: 1950,
+                           max: Date.current.year + 1,
+                           placeholder: t(".year_placeholder"),
+                           data: { vehicle_lookup_target: "year" } %>
+      </div>
     </div>
+  </div>
 
-    <div class="md:col-span-2 space-y-3">
-      <%= f.label :customer_name, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
+  <%# ── 02 · Cliente ───────────────────────────────────────────── %>
+  <div class="wof-section">
+    <span class="wof-section-icon">
+      <span class="material-symbols-outlined" style="font-size:15px">person</span>
+    </span>
+    <span class="wof-section-name"><%= t(".section.customer") %></span>
+    <span class="wof-section-rule"></span>
+    <span class="wof-section-num">02</span>
+  </div>
+
+  <div class="wof-grid-2-stack">
+    <div class="wof-label-row">
+      <%= f.label :customer_name, class: "wof-label" %>
+    </div>
+    <div class="wof-input-wrap">
       <%= f.text_field :customer_name,
                        placeholder: t(".customer_name_placeholder"),
-                       data: { vehicle_lookup_target: "customerName" },
-                       class: "w-full h-12 px-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60" %>
+                       data: { vehicle_lookup_target: "customerName" } %>
     </div>
   </div>
 
-  <div class="space-y-3">
-    <%= f.label :reason, class: "block text-label-md text-on-surface-variant uppercase tracking-wider" %>
-    <%= f.text_area :reason,
-                    rows: 5,
-                    placeholder: t(".reason_placeholder"),
-                    class: "w-full p-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-4 focus:ring-primary/15 focus:border-primary outline-none transition text-body-md placeholder:text-outline/60 resize-none" %>
-    <p class="text-body-sm text-on-surface-variant italic"><%= t(".reason_hint") %></p>
+  <%# ── 03 · Motivo de ingreso ──────────────────────────────────── %>
+  <div class="wof-section">
+    <span class="wof-section-icon">
+      <span class="material-symbols-outlined" style="font-size:15px">edit_note</span>
+    </span>
+    <span class="wof-section-name"><%= t(".section.reason") %></span>
+    <span class="wof-section-rule"></span>
+    <span class="wof-section-num">03</span>
   </div>
 
-  <div class="space-y-3">
-    <label for="work_order_photos" class="block text-label-md text-on-surface-variant uppercase tracking-wider">
-      <%= t("helpers.label.work_order.photos") %>
-    </label>
-    <%# Compact horizontal dropzone. The file_field is `hidden` and the
-        wrapping <label[for]> triggers the picker — simpler than an
-        absolute overlay and immune to z-index quirks. %>
-    <label for="work_order_photos"
-           class="flex items-center gap-6 border border-dashed border-outline-variant rounded-2xl px-6 py-5 bg-surface-container-low hover:bg-surface-container-high hover:border-primary/50 transition-colors cursor-pointer group">
-      <div class="shrink-0 w-12 h-12 rounded-xl bg-secondary-container text-on-secondary-fixed flex items-center justify-center group-hover:bg-secondary-fixed-dim transition-colors">
-        <span class="material-symbols-outlined text-[24px] leading-none" style="font-variation-settings: 'FILL' 1;">add_a_photo</span>
-      </div>
-      <div class="flex-1 min-w-0">
-        <p class="text-body-md font-semibold text-on-surface"><%= t(".upload.title") %></p>
-        <p class="text-body-sm text-on-surface-variant truncate mt-0.5"><%= t(".upload.subtitle") %></p>
-      </div>
-      <span class="hidden sm:inline-flex shrink-0 text-body-sm font-semibold text-primary items-center gap-1 group-hover:gap-2 transition-all">
-        <%= t(".upload.browse") %>
-        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-      </span>
-    </label>
-    <%= f.file_field :photos, multiple: true, accept: "image/*", class: "hidden" %>
-    <p class="text-body-sm text-on-surface-variant italic"><%= t(".photos_hint") %></p>
+  <div class="wof-grid-2-stack">
+    <div class="wof-input-wrap wof-textarea-wrap">
+      <%= f.text_area :reason,
+                      rows: 4,
+                      placeholder: t(".reason_placeholder") %>
+    </div>
+    <p class="wof-motivo-hint">
+      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">bolt</span>
+      <%= t(".reason_hint") %>
+    </p>
   </div>
 
-  <div class="flex items-center justify-end gap-3 pt-6 border-t border-outline-variant">
-    <%= link_to t(".cancel"), work_orders_path,
-                class: "inline-flex items-center px-5 py-2.5 text-body-md font-medium text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors" %>
-    <%= f.button class: "inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-on-primary text-body-md font-semibold rounded-full shadow-sm hover:bg-primary-container hover:shadow transition-all active:scale-[0.98] cursor-pointer" do %>
+  <%# ── 04 · Fotos del vehículo · opcional ──────────────────────── %>
+  <div class="wof-section">
+    <span class="wof-section-icon">
+      <span class="material-symbols-outlined" style="font-size:15px">photo_camera</span>
+    </span>
+    <span class="wof-section-name"><%= t(".section.photos") %></span>
+    <span class="wof-section-rule"></span>
+    <span class="wof-section-num">04</span>
+  </div>
+
+  <%# Hidden file_field + clickable label wrapping the dropzone visuals.
+      The whole zone opens the picker because <label[for]> targets the
+      input. No JS overlay needed. %>
+  <label for="work_order_photos" class="wof-drop">
+    <span class="material-symbols-outlined" style="font-size:22px">add_a_photo</span>
+    <span class="wof-drop-title">
+      <%= t(".upload.title") %>
+      <br>
+      <span class="wof-drop-meta"><%= t(".upload.subtitle") %></span>
+    </span>
+  </label>
+  <%= f.file_field :photos, multiple: true, accept: "image/*", class: "hidden" %>
+
+  <%# ── Divider + actions ───────────────────────────────────────── %>
+  <div class="wof-divider"></div>
+  <div class="wof-actions">
+    <div class="flex-1"></div>
+    <%= link_to t(".cancel"), work_orders_path, class: "wof-cancel" %>
+    <%= f.button class: "wof-submit" do %>
       <%= t("helpers.submit.work_order.#{work_order.persisted? ? 'update' : 'create'}") %>
+      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">bolt</span>
     <% end %>
   </div>
 <% end %>

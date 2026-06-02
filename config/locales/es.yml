@@ -78,8 +78,10 @@ es:
         cta: "Crear la primera"
     new:
       title: "Nueva Orden de Trabajo"
-      subtitle: "Registrá los datos del vehículo. Nuestra IA analizará el motivo de ingreso para generar sugerencias de diagnóstico automáticas después de guardar."
+      subtitle: "Registra los datos del vehículo. Ingresa la patente para precargar la ficha desde tu base de clientes."
       back: "Volver"
+      folio_label: "FOLIO"
+      folio_draft: "#BORRADOR"
       guidance:
         ai:
           title: "IA de diagnóstico"
@@ -167,20 +169,28 @@ es:
         other: "corridas"
       last_run: "Última"
     form:
-      patente_placeholder: "Ej: ABCD-12"
-      mileage_placeholder: "Ej: 45000"
-      mileage_unit: "KM"
+      patente_placeholder: "EJ: ABCD-12"
+      mileage_placeholder: "45000"
+      mileage_unit: "km"
       customer_name_placeholder: "Nombre completo del titular"
-      make_placeholder: "Ej: Toyota"
-      model_placeholder: "Ej: Corolla"
-      year_placeholder: "Ej: 2018"
+      make_placeholder: "Toyota"
+      model_placeholder: "Corolla"
+      year_placeholder: "2018"
       ai_badge: "IA"
-      reason_placeholder: "Ej: Vehículo tirita en ralentí y prende la luz de check engine al acelerar"
-      reason_hint: "Describe los síntomas con tus propias palabras. La IA usará este texto para diagnosticar."
+      reason_placeholder: "Ej: El vehículo tirita en ralentí y prende la luz de check engine al acelerar"
+      reason_hint: "Describe los síntomas con tus palabras — alimentan el diagnóstico IA en el siguiente paso."
       photos_hint: "Adjunta fotos de daños visibles, tablero o cualquier detalle relevante."
+      banner_title: "Vehículo en tu base"
+      hint:
+        autocomplete: "autocompleta"
+      section:
+        vehicle: "Datos del vehículo"
+        customer: "Cliente"
+        reason: "Motivo de ingreso"
+        photos: "Fotos del vehículo · opcional"
       upload:
-        title: "Adjunta tus fotos"
-        subtitle: "o haz clic para explorar fotos de daños, tablero o detalles relevantes."
+        title: "Adjunta fotos"
+        subtitle: "daños, tablero, detalles relevantes"
         browse: "Examinar"
       errors_heading:
         one: "Se encontró %{count} error:"
@@ -207,7 +217,7 @@ es:
     attributes:
       work_order:
         patente: "Patente"
-        customer_name: "Nombre del cliente"
+        customer_name: "Nombre del titular"
         mileage: "Kilometraje"
         reason: "Motivo de ingreso"
         priority: "Prioridad"

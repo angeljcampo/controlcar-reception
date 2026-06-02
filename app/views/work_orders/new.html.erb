@@ -1,44 +1,32 @@
-<div class="max-w-3xl mx-auto px-6 py-10">
-  <div class="mb-6">
-    <%= link_to work_orders_path, class: "inline-flex items-center gap-2 text-primary hover:-translate-x-1 transition-transform duration-200" do %>
-      <span class="material-symbols-outlined">arrow_back</span>
-      <span class="text-label-md uppercase tracking-wider"><%= t(".back") %></span>
-    <% end %>
-  </div>
+<%# Recepción · Nueva Orden de Trabajo
+    Dark "Garage" theme (Claude Design handoff). Self-contained inside
+    .wof — the rest of the app (work_orders#index, #show) keeps the
+    light MD3 theme. Tokens live in app/assets/tailwind/application.css. %>
+<div class="wof">
+  <div class="wof-page">
+    <div class="wof-container">
 
-  <div class="mb-8">
-    <h1 class="text-headline-lg text-primary mb-2"><%= t(".title") %></h1>
-    <p class="text-body-md text-on-surface-variant"><%= t(".subtitle") %></p>
-  </div>
-
-  <%= render "form", work_order: @work_order %>
-
-  <%# Reassurance strip. Single row, equal cards, centered icon + label
-      pair on each — kept narrow so they don't outweigh the form. %>
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
-    <%
-      guidance_cards = [
-        { key: :ai,      icon: "auto_awesome",  filled: true,  accent: true  },
-        { key: :quality, icon: "verified_user", filled: false, accent: false },
-        { key: :sync,    icon: "cloud_done",    filled: false, accent: false },
-      ]
-    %>
-    <% guidance_cards.each do |card| %>
-      <div class="<%= card[:accent] ? "bg-secondary-container/40 border-secondary-container" : "bg-surface-container-lowest border-outline-variant" %> border rounded-xl p-4 flex items-center gap-3">
-        <div class="shrink-0 w-9 h-9 rounded-full <%= card[:accent] ? "bg-secondary text-on-secondary" : "bg-surface-container-high text-on-surface-variant" %> flex items-center justify-center">
-          <span class="material-symbols-outlined text-[18px]" style="<%= card[:filled] ? "font-variation-settings: 'FILL' 1;" : "" %>">
-            <%= card[:icon] %>
-          </span>
+      <%# Header ─ back link + title + folio chip ─────────────────── %>
+      <div class="wof-header">
+        <div class="flex-1">
+          <%= link_to work_orders_path, class: "wof-back" do %>
+            <span class="material-symbols-outlined" style="font-size:15px">arrow_back</span>
+            <%= t(".back").to_s.upcase %>
+          <% end %>
+          <h1 class="wof-title"><%= t(".title") %></h1>
+          <p class="wof-subtitle"><%= t(".subtitle") %></p>
         </div>
-        <div class="min-w-0">
-          <p class="text-label-md <%= card[:accent] ? "text-on-secondary-container" : "text-on-surface-variant" %> uppercase tracking-wider leading-tight">
-            <%= t(".guidance.#{card[:key]}.title") %>
-          </p>
-          <p class="text-body-sm <%= card[:accent] ? "text-on-secondary-container" : "text-on-surface-variant" %> opacity-90 leading-snug mt-0.5">
-            <%= t(".guidance.#{card[:key]}.body") %>
-          </p>
+        <div class="wof-folio">
+          <span class="wof-folio-label"><%= t(".folio_label") %></span>
+          <span class="wof-folio-value"><%= t(".folio_draft") %></span>
         </div>
       </div>
-    <% end %>
+
+      <%# Form card ───────────────────────────────────────────────── %>
+      <div class="wof-card">
+        <%= render "form", work_order: @work_order %>
+      </div>
+
+    </div>
   </div>
 </div>
