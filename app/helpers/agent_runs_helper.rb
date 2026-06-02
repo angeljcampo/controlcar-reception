@@ -96,7 +96,7 @@ module AgentRunsHelper
               tag.li(safe_join(parts, " · "), class: "text-body-sm text-on-surface")
             end
             list = tag.ul(safe_join(rows), class: "list-disc list-inside space-y-0.5 ml-1")
-            safe_join([header, list])
+            safe_join([ header, list ])
           end
         end
       end
