@@ -171,17 +171,35 @@
   </div>
 
   <%# Hidden file_field + clickable label wrapping the dropzone visuals.
-      The whole zone opens the picker because <label[for]> targets the
-      input. No JS overlay needed. %>
-  <label for="work_order_photos" class="wof-drop">
-    <span class="material-symbols-outlined" style="font-size:22px">add_a_photo</span>
-    <span class="wof-drop-title">
-      <%= t(".upload.title") %>
-      <br>
-      <span class="wof-drop-meta"><%= t(".upload.subtitle") %></span>
-    </span>
-  </label>
-  <%= f.file_field :photos, multiple: true, accept: "image/*", class: "hidden" %>
+      Stimulus controller "photo-upload" da feedback visual: muestra
+      thumbnails de cada foto seleccionada y permite quitarlas. El input
+      sigue siendo el sourceofotuth para el submit del form. %>
+  <div data-controller="photo-upload">
+    <label for="work_order_photos"
+           class="wof-drop"
+           data-photo-upload-target="dropzone">
+      <span class="material-symbols-outlined" style="font-size:22px">add_a_photo</span>
+      <span class="wof-drop-title">
+        <%= t(".upload.title") %>
+        <span class="wof-drop-count" data-photo-upload-target="count"></span>
+        <br>
+        <span class="wof-drop-meta"><%= t(".upload.subtitle") %></span>
+      </span>
+    </label>
+
+    <%= f.file_field :photos,
+                     multiple: true,
+                     accept: "image/*",
+                     class: "hidden",
+                     data: {
+                       photo_upload_target: "input",
+                       action: "change->photo-upload#onChange"
+                     } %>
+
+    <%# Grid de previews — vacío hasta que el controller renderice. %>
+    <div class="wof-photo-grid hidden"
+         data-photo-upload-target="previews"></div>
+  </div>
 
   <%# ── Divider + actions ───────────────────────────────────────── %>
   <div class="wof-divider"></div>

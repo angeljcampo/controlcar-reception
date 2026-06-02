@@ -1,0 +1,79 @@
+<%# Row de un KnowledgeDocument. El subscribe a turbo_stream lo hace
+    el index.html.erb a nivel de página (no por row) para evitar N subscripciones
+    duplicadas. IngestPdfJob hace broadcast_replace_to "knowledge_documents". %>
+<div id="<%= dom_id(document) %>" class="wof-card" style="padding: 18px 22px;">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="flex-1 min-w-0">
+      <%# Title + status badge %>
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <h3 style="font-size: 15.5px; font-weight: 700; color: var(--wof-ink); margin: 0; flex: 1; min-width: 0;">
+          <%= document.title %>
+        </h3>
+
+        <%# Status pill %>
+        <% status_styles = {
+             "pending"    => "background: rgba(160,160,160,0.15); color: var(--wof-muted); border: 1px solid rgba(160,160,160,0.3);",
+             "processing" => "background: rgba(80,160,255,0.15); color: #50A0FF; border: 1px solid rgba(80,160,255,0.3);",
+             "ready"      => "background: var(--wof-accent-soft); color: var(--wof-accent); border: 1px solid rgba(194,249,78,0.3);",
+             "failed"     => "background: rgba(255,118,118,0.12); color: var(--wof-danger); border: 1px solid rgba(255,118,118,0.35);"
+           } %>
+        <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; <%= status_styles[document.status] %>">
+          <% if document.processing? %>
+            ⏳ Procesando…
+          <% elsif document.ready? %>
+            ✓ Listo
+          <% elsif document.failed? %>
+            ✗ Falló
+          <% else %>
+            En cola
+          <% end %>
+        </span>
+
+        <%# Chunking strategy chip %>
+        <span class="wof-mono"
+              style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.5px; padding: 3px 9px; border-radius: 6px; background: var(--wof-field-bg); color: var(--wof-muted); border: 1px solid var(--wof-field-line);">
+          <%= document.chunking_strategy %>
+        </span>
+      </div>
+
+      <%# Stats row — gap inline porque tailwind purge no compila gap-x-*. %>
+      <div style="display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--wof-muted);">
+        <% if document.ready? %>
+          <span><strong style="color: var(--wof-ink);"><%= number_with_delimiter(document.total_chunks) %></strong> chunks</span>
+          <span aria-hidden="true">·</span>
+          <span><strong style="color: var(--wof-ink);"><%= document.total_pages %></strong> págs</span>
+          <span aria-hidden="true">·</span>
+          <span><strong style="color: var(--wof-ink);"><%= number_with_delimiter(document.embedding_tokens) %></strong> emb. tokens</span>
+          <span aria-hidden="true">·</span>
+          <span>$<strong style="color: var(--wof-ink);"><%= format("%.4f", document.embedding_cost_cents.to_i / 100.0) %></strong></span>
+        <% elsif document.failed? %>
+          <span style="color: var(--wof-danger);">⚠ <%= document.error_message&.truncate(120) %></span>
+        <% else %>
+          <span style="font-style: italic;">Esperando procesamiento…</span>
+        <% end %>
+        <span aria-hidden="true">·</span>
+        <span><%= l(document.created_at.to_date, format: :long) rescue document.created_at.strftime("%Y-%m-%d") %></span>
+      </div>
+    </div>
+
+    <%# Actions %>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <% if document.file.attached? %>
+        <%= link_to rails_blob_path(document.file, disposition: "attachment"),
+                    class: "inline-flex items-center justify-center",
+                    title: "Descargar PDF",
+                    style: "width: 36px; height: 36px; border-radius: 8px; color: var(--wof-muted); background: var(--wof-field-bg); border: 1px solid var(--wof-field-line); text-decoration: none;" do %>
+          <span class="material-symbols-outlined" style="font-size: 18px;">download</span>
+        <% end %>
+      <% end %>
+
+      <%= button_to knowledge_document_path(document),
+                    method: :delete,
+                    data: { turbo_confirm: "Eliminar #{document.title}? Se borrarán todos los chunks." },
+                    title: "Eliminar",
+                    style: "width: 36px; height: 36px; border-radius: 8px; color: var(--wof-danger); background: rgba(255,118,118,0.10); border: 1px solid rgba(255,118,118,0.25); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;" do %>
+        <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+      <% end %>
+    </div>
+  </div>
+</div>

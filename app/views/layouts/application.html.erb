@@ -41,6 +41,9 @@
           <%= link_to t(".nav.work_orders"),
                       work_orders_path,
                       class: "#{nav_link_classes} #{current_page?(work_orders_path) || controller_name == "work_orders" ? "text-primary border-b-2 border-primary font-bold" : "text-on-surface-variant hover:text-primary"}" %>
+          <%= link_to "Knowledge Base",
+                      knowledge_documents_path,
+                      class: "#{nav_link_classes} #{controller_name == "knowledge_documents" ? "text-primary border-b-2 border-primary font-bold" : "text-on-surface-variant hover:text-primary"}" %>
         </nav>
       </div>
     </header>

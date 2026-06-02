@@ -24,5 +24,11 @@ Rails.application.routes.draw do
     resources :agent_runs, only: %i[index]
   end
 
+  # Knowledge base administration: lista los PDFs precargados,
+  # permite subir nuevos y eliminar. El ingest se dispara async via Sidekiq.
+  resources :knowledge_documents,
+            only: %i[index create destroy],
+            path: "knowledge"
+
   root "work_orders#index"
 end

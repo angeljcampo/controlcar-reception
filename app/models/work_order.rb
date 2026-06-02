@@ -12,6 +12,9 @@ class WorkOrder < ApplicationRecord
   belongs_to :vehicle
   has_one :ai_analysis, dependent: :destroy
   has_many :agent_runs, dependent: :destroy
+  # Atajo para el panel de observabilidad RAG en /work_orders/:id.
+  # No necesita dependent — agent_runs ya cae en cascada.
+  has_many :retrieval_runs, through: :agent_runs
   has_many_attached :photos
 
   enum :priority, PRIORITIES.index_by(&:itself)

@@ -1,0 +1,102 @@
+<%# Panel de observabilidad del RAG.
+    Muestra qué buscó el LLM, cuántos matches encontró, y qué scores tuvieron.
+    Es la diferencia entre "el LLM decidió algo" y "el LLM buscó esto, recibió
+    estos chunks con estos scores, y citó tales fuentes". %>
+<% runs = work_order.retrieval_runs.order(:created_at) %>
+<% if runs.any? %>
+  <details class="wof-card mt-6" style="overflow: hidden; padding: 0;">
+    <summary class="flex items-center gap-2 cursor-pointer px-6 py-4 list-none"
+             style="background: var(--wof-app-bg); border-bottom: 1px solid var(--wof-panel-line);">
+      <span class="material-symbols-outlined" style="color: var(--wof-accent); font-size: 20px;">manage_search</span>
+      <h2 style="font-size: 16px; font-weight: 700; color: var(--wof-ink); margin: 0;">
+        Búsquedas en knowledge base
+      </h2>
+      <span class="wof-mono"
+            style="margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; background: var(--wof-field-bg); color: var(--wof-muted); border: 1px solid var(--wof-field-line);">
+        <%= runs.size %> <%= runs.size == 1 ? "query" : "queries" %>
+      </span>
+    </summary>
+
+    <div style="padding: 0;">
+      <% runs.each_with_index do |run, idx| %>
+        <div class="px-6 py-5" style="<%= 'border-top: 1px solid var(--wof-panel-line);' if idx > 0 %>">
+          <%# Query + status header %>
+          <div class="flex flex-wrap items-baseline gap-3 mb-3">
+            <span class="wof-mono" style="font-size: 12px; color: var(--wof-faint); flex-shrink: 0;">Q<%= idx + 1 %></span>
+            <code style="font-size: 14px; color: var(--wof-ink); background: var(--wof-field-bg); padding: 3px 10px; border-radius: 6px; border: 1px solid var(--wof-field-line); flex: 1; min-width: 0;">
+              "<%= run.query %>"
+            </code>
+            <% if run.threshold_passed %>
+              <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; background: var(--wof-accent-soft); color: var(--wof-accent); border: 1px solid rgba(194,249,78,0.3); flex-shrink: 0;">
+                ✓ Strong match
+              </span>
+            <% else %>
+              <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; background: rgba(255,170,80,0.12); color: #FFAA50; border: 1px solid rgba(255,170,80,0.3); flex-shrink: 0;">
+                ⚠ Weak matches
+              </span>
+            <% end %>
+          </div>
+
+          <%# Stats row — inline gap porque tailwindcss-rails no compila
+              gap-x-* si no se usa en otra view. %>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px 20px; margin-bottom: 16px; font-size: 12.5px; color: var(--wof-muted);">
+            <span><strong style="color: var(--wof-ink);"><%= run.total_matches %></strong> chunks fetcheados</span>
+            <span aria-hidden="true">·</span>
+            <span><strong style="color: var(--wof-ink);"><%= run.strong_matches_count %></strong> fuertes (dist &lt; 0.65)</span>
+            <span aria-hidden="true">·</span>
+            <span>best dist: <strong style="color: var(--wof-ink);"><%= run.best_vector_distance&.round(3) || "—" %></strong></span>
+            <span aria-hidden="true">·</span>
+            <span><strong style="color: var(--wof-ink);"><%= run.latency_ms %></strong>ms</span>
+            <span aria-hidden="true">·</span>
+            <span><strong style="color: var(--wof-ink);"><%= run.embedding_tokens %></strong> emb. tokens</span>
+          </div>
+
+          <%# Results table %>
+          <% if run.results.any? %>
+            <div style="background: var(--wof-app-bg); border: 1px solid var(--wof-panel-line); border-radius: 8px; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <thead>
+                  <tr style="background: var(--wof-field-bg);">
+                    <th style="padding: 8px 12px; text-align: left; color: var(--wof-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10.5px;">#</th>
+                    <th style="padding: 8px 12px; text-align: left; color: var(--wof-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10.5px;">Chunk</th>
+                    <th style="padding: 8px 12px; text-align: right; color: var(--wof-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10.5px;">vec rank</th>
+                    <th style="padding: 8px 12px; text-align: right; color: var(--wof-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10.5px;">kw rank</th>
+                    <th style="padding: 8px 12px; text-align: right; color: var(--wof-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10.5px;">vec dist</th>
+                    <th style="padding: 8px 12px; text-align: right; color: var(--wof-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10.5px;">RRF score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% run.matches.each do |result| %>
+                    <% chunk = KnowledgeChunk.find_by(id: result["chunk_id"]) %>
+                    <tr style="border-top: 1px solid var(--wof-panel-line);">
+                      <td class="wof-mono" style="padding: 8px 12px; color: var(--wof-faint);"><%= (result["fused_rank"].to_i + 1) %></td>
+                      <td style="padding: 8px 12px; color: var(--wof-ink-soft);">
+                        <% if chunk %>
+                          <%= chunk.breadcrumb&.truncate(80) %>
+                        <% else %>
+                          <span style="color: var(--wof-faint);">(chunk eliminado)</span>
+                        <% end %>
+                      </td>
+                      <td class="wof-mono" style="padding: 8px 12px; text-align: right; color: var(--wof-ink-soft);">
+                        <%= result["vector_rank"]&.to_i&.+(1) || "—" %>
+                      </td>
+                      <td class="wof-mono" style="padding: 8px 12px; text-align: right; color: var(--wof-ink-soft);">
+                        <%= result["keyword_rank"]&.to_i&.+(1) || "—" %>
+                      </td>
+                      <td class="wof-mono" style="padding: 8px 12px; text-align: right; color: var(--wof-ink-soft);">
+                        <%= result["vector_distance"]&.to_f&.round(3) || "—" %>
+                      </td>
+                      <td class="wof-mono" style="padding: 8px 12px; text-align: right; color: var(--wof-accent);">
+                        <%= result["fused_score"]&.to_f&.round(4) %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </details>
+<% end %>

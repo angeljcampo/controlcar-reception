@@ -5,6 +5,9 @@ class AnalyzeWorkOrderJob < ApplicationJob
 
   # Configuration errors don't get retried — fix the env var and re-enqueue.
   discard_on Ai::Providers::OpenAIProvider::MissingApiKey
+  # WO deleted between enqueue and execution (manual cleanup, fixture reset,
+  # etc.) — nothing to do, descartar en lugar de reintentar 3 veces.
+  discard_on ActiveRecord::RecordNotFound
 
   # Transient provider/network failures: retry up to 3 times with backoff.
   # TruncatedResponse is retryable because a fresh attempt frequently lands

@@ -9,6 +9,7 @@ module Ai
       # in the OpenAI tools array (the model can pick any of them).
       TOOLS = [
         Ai::Tools::GetVehicleHistory,
+        Ai::Tools::SearchKnowledgeBase,
         Ai::Tools::RespondWithAnalysis
       ].freeze
 

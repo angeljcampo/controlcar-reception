@@ -23,12 +23,20 @@ module WorkOrdersHelper
     "cancelled" => "bg-red-900/50 text-red-300 border border-red-500/30"
   }.freeze
 
+  # Devuelve nil si la prioridad aún no fue decidida (LLM no terminó).
+  # Render condicional aguas arriba evita un badge vacío en la UI.
   def priority_badge(work_order)
+    return nil if work_order.priority.blank?
+
     pill(work_order.priority_label, PRIORITY_CLASSES[work_order.priority])
   end
 
   # "Alta Prioridad", "Media Prioridad", etc. for the header card pill.
+  # Mismo guard que arriba — sin priority no se muestra nada en lugar
+  # de un default inventado.
   def priority_with_suffix_badge(work_order)
+    return nil if work_order.priority.blank?
+
     pill("#{work_order.priority_label} #{t('work_orders.show.priority_suffix')}",
          PRIORITY_CLASSES[work_order.priority])
   end
