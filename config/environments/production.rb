@@ -55,7 +55,12 @@ Rails.application.configure do
   # are fine in-process per dyno.
   config.cache_store = :memory_store
 
-  # Active Job uses Sidekiq (queue_adapter is set in config/application.rb).
+  # Active Job: queue_adapter is read from ENV["ACTIVE_JOB_ADAPTER"] in
+  # config/application.rb. In this deploy (Render free, no background
+  # workers available) we run with :async — jobs execute in a thread of
+  # the Puma web process. Trade-off: jobs lose persistence across Puma
+  # restarts, and we don't get Sidekiq Web UI / retries / rate limiting.
+  # For the demo workload (a reviewer creating 1-2 orders) that's fine.
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

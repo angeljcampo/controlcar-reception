@@ -39,9 +39,12 @@ module ControlcarReception
     # Don't generate system test files.
     config.generators.system_tests = nil
 
-    # Active Job runs through Sidekiq in every environment.
-    # (Sidekiq client/server configured in config/initializers/sidekiq.rb.)
-    config.active_job.queue_adapter = :sidekiq
+    # Active Job adapter, configurable per environment via ACTIVE_JOB_ADAPTER.
+    # Defaults to Sidekiq (used in dev). In production on Render's free plan
+    # (no background workers) we override to :async via the env var so jobs
+    # run in a thread of the Puma process. When we move to a paid plan or
+    # bring back a worker, flip ACTIVE_JOB_ADAPTER=sidekiq with no redeploy.
+    config.active_job.queue_adapter = ENV.fetch("ACTIVE_JOB_ADAPTER", "sidekiq").to_sym
 
     # Default locale and timezone for a Chilean workshop.
     config.i18n.default_locale = :es

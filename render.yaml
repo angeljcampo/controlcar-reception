@@ -1,10 +1,18 @@
 # Render Blueprint — define todos los servicios de la app de una vez.
 # Cuando lo apliques en el dashboard ("New +" → "Blueprint" → este repo),
-# Render crea: 1 Postgres (con pgvector), 1 Redis (Key-Value Store),
-# 1 web service (Puma) y 1 worker service (Sidekiq).
+# Render crea: 1 Postgres (con pgvector), 1 Redis (Key-Value Store), y
+# 1 web service (Puma).
 #
-# Las env vars con `sync: false` NO se sincronizan desde el yaml — te
-# pide setearlas manualmente en el dashboard la primera vez. Eso es a
+# Background jobs corren EN PROCESO dentro de Puma (queue_adapter :async)
+# porque Render free no soporta workers separados. Sidekiq se mantiene en
+# desarrollo. En un upgrade a plan Starter agregaríamos:
+#
+#   - type: worker
+#     dockerCommand: bundle exec sidekiq -C config/sidekiq.yml
+#     # Y setear ACTIVE_JOB_ADAPTER=sidekiq en ambos servicios.
+#
+# Las env vars con `sync: false` NO se sincronizan desde el yaml — Render
+# pide setearlas manualmente en el dashboard la primera vez. Es a
 # propósito: nunca commiteamos secretos al repo.
 
 databases:
@@ -13,10 +21,14 @@ databases:
     region: oregon
     postgresMajorVersion: 16
     # pgvector lo habilitamos vía la migration `enable_vector_extension`
-    # (CREATE EXTENSION vector) que corre en preDeployCommand del web.
+    # (CREATE EXTENSION vector) que corre en bin/docker-entrypoint.
 
 services:
-  # ─── Redis (Sidekiq + ActionCable broadcasts) ──────────────────────
+  # ─── Redis (Action Cable broadcasts) ───────────────────────────────
+  # Lo mantenemos aunque ya no usemos Sidekiq: ActionCable's redis
+  # adapter sigue siendo el camino más simple para broadcasts cross-
+  # thread dentro de Puma. solid_cable haría falta una DB cable o usar
+  # la primary; Redis ya está acá, mantenemos.
   - type: keyvalue
     name: controlcar-redis
     plan: free
@@ -33,8 +45,6 @@ services:
     # IMPORTANT: Render's `dockerCommand` overrides BOTH the ENTRYPOINT
     # AND the CMD of the Dockerfile. We invoke `bin/docker-entrypoint`
     # explicitly so it can run `db:prepare` before puma starts.
-    # Without this prefix, ENTRYPOINT is bypassed and migrations never
-    # run — the first request crashes with "relation X does not exist".
     dockerCommand: ./bin/docker-entrypoint bundle exec puma -C config/puma.rb
     healthCheckPath: /up
     envVars:
@@ -50,6 +60,10 @@ services:
         value: "3"
       - key: ACTIVE_STORAGE_SERVICE
         value: amazon
+      # Background jobs corren in-process en Puma. Cambiar a "sidekiq"
+      # cuando agreguemos un worker en plan pagado.
+      - key: ACTIVE_JOB_ADAPTER
+        value: async
       - key: SECRET_KEY_BASE
         generateValue: true     # Render auto-genera al crear, queda fijo.
       - key: DATABASE_URL
@@ -64,52 +78,6 @@ services:
       # ─── Setear manualmente en el dashboard la primera vez ────────
       - key: RAILS_MASTER_KEY
         sync: false   # pegar el contenido de config/master.key local
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: AWS_S3_BUCKET
-        sync: false
-      - key: AWS_REGION
-        sync: false
-      - key: AWS_ACCESS_KEY_ID
-        sync: false
-      - key: AWS_SECRET_ACCESS_KEY
-        sync: false
-
-  # ─── Worker (Sidekiq) ──────────────────────────────────────────────
-  - type: worker
-    name: controlcar-worker
-    runtime: docker
-    plan: free
-    region: oregon
-    dockerfilePath: ./Dockerfile
-    dockerCommand: bundle exec sidekiq -C config/sidekiq.yml
-    envVars:
-      - key: RAILS_ENV
-        value: production
-      - key: RAILS_LOG_TO_STDOUT
-        value: "true"
-      - key: SIDEKIQ_CONCURRENCY
-        value: "3"
-      - key: ACTIVE_STORAGE_SERVICE
-        value: amazon
-      - key: SECRET_KEY_BASE
-        # Worker comparte el mismo secret que el web (necesario para
-        # decifrar mensajes cifrados de ActiveJob entre procesos).
-        fromService:
-          type: web
-          name: controlcar-web
-          envVarKey: SECRET_KEY_BASE
-      - key: DATABASE_URL
-        fromDatabase:
-          name: controlcar-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: controlcar-redis
-          property: connectionString
-      - key: RAILS_MASTER_KEY
-        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: AWS_S3_BUCKET
