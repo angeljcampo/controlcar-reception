@@ -30,10 +30,12 @@ services:
     plan: free
     region: oregon
     dockerfilePath: ./Dockerfile
-    # Render asigna $PORT dinámicamente; Puma lo lee via ENV.
-    # bin/docker-entrypoint corre `db:prepare` antes de arrancar puma
-    # (preDeployCommand requiere plan pago en Render).
-    dockerCommand: bundle exec puma -C config/puma.rb
+    # IMPORTANT: Render's `dockerCommand` overrides BOTH the ENTRYPOINT
+    # AND the CMD of the Dockerfile. We invoke `bin/docker-entrypoint`
+    # explicitly so it can run `db:prepare` before puma starts.
+    # Without this prefix, ENTRYPOINT is bypassed and migrations never
+    # run — the first request crashes with "relation X does not exist".
+    dockerCommand: ./bin/docker-entrypoint bundle exec puma -C config/puma.rb
     healthCheckPath: /up
     envVars:
       - key: RAILS_ENV
