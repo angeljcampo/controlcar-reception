@@ -115,7 +115,10 @@
                       <%= t(".cancel_dialog.title") %>
                     </h3>
                     <p class="text-body-md text-on-surface-variant leading-relaxed">
-                      <%= t(".cancel_dialog.body_html", patente: @work_order.vehicle.patente).html_safe %>
+                      <%# `_html` suffix already returns an html_safe string
+                          with interpolations escaped. No `.html_safe` needed
+                          (it would also trip Brakeman's XSS check). %>
+                      <%= t(".cancel_dialog.body_html", patente: @work_order.vehicle.patente) %>
                     </p>
                   </div>
                 </div>
@@ -174,7 +177,7 @@
     <div class="flex items-start gap-3 bg-zinc-100 border border-zinc-300 rounded-xl p-4 mb-6">
       <span class="material-symbols-outlined text-zinc-600 mt-0.5">block</span>
       <p class="text-body-md text-zinc-700 leading-relaxed">
-        <%= t(".cancelled_banner_html").html_safe %>
+        <%= t(".cancelled_banner_html") %>
       </p>
     </div>
   <% end %>
