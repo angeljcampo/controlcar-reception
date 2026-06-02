@@ -10,7 +10,7 @@
 
 **Demo en vivo:** **<https://controlcar-web.onrender.com>**
 
-Si preferís evaluar el flujo directamente sin clonar, abrí ese link. La primera carga puede tardar 30-60s mientras Render despierta el container (plan free). La knowledge base se carga desde el botón **"Cargar manuales precargados"** en `/knowledge` la primera vez — ~10 min con traducción, ~1 min sin. Una vez seedeada, el RAG funciona en cualquier OT que crees.
+Si prefieres evaluar el flujo directamente sin clonar, abrí ese link. La primera carga puede tardar 30-60s mientras Render despierta el container (plan free). La knowledge base se carga desde el botón **"Cargar manuales precargados"** en `/knowledge` la primera vez — ~10 min con traducción, ~1 min sin. Una vez seedeada, el RAG funciona en cualquier OT que crees.
 
 Si querés bajar el repo y correrlo local, seguí el [Quick start](#quick-start) más abajo.
 
