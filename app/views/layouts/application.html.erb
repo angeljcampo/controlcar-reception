@@ -45,18 +45,28 @@
       </div>
     </header>
 
+    <%# Flash messages — Garage dark theme. Notice = lime translucid,
+        alert = red translucid. Same tokens as the rest of the work_order
+        views so the strip blends with the dark background instead of
+        flashing a light-mode banner over a dark page. %>
     <% if flash[:notice] || flash[:alert] %>
-      <div class="max-w-[1400px] mx-auto px-6 mt-4">
-        <% if flash[:notice] %>
-          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg px-4 py-3 text-body-sm">
-            <%= flash[:notice] %>
-          </div>
-        <% end %>
-        <% if flash[:alert] %>
-          <div class="bg-error-container border border-error/30 text-on-error-container rounded-lg px-4 py-3 text-body-sm">
-            <%= flash[:alert] %>
-          </div>
-        <% end %>
+      <div style="background: #0A0D12;">
+        <div class="max-w-[1400px] mx-auto px-6 pt-4">
+          <% if flash[:notice] %>
+            <div class="flex items-center gap-3 rounded-lg px-4 py-3 text-body-sm"
+                 style="background: rgba(194, 249, 78, 0.10); border: 1px solid rgba(194, 249, 78, 0.30); color: #DDF8A0;">
+              <span class="material-symbols-outlined" style="font-size: 20px; color: #C2F94E;">check_circle</span>
+              <%= flash[:notice] %>
+            </div>
+          <% end %>
+          <% if flash[:alert] %>
+            <div class="flex items-center gap-3 rounded-lg px-4 py-3 text-body-sm"
+                 style="background: rgba(255, 118, 118, 0.10); border: 1px solid rgba(255, 118, 118, 0.30); color: #FFB3B3;">
+              <span class="material-symbols-outlined" style="font-size: 20px; color: #FF7676;">error</span>
+              <%= flash[:alert] %>
+            </div>
+          <% end %>
+        </div>
       </div>
     <% end %>
 
