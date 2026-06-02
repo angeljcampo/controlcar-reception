@@ -1,17 +1,20 @@
-<div class="max-w-[1400px] mx-auto px-6 py-8">
+<%# Show — Garage dark theme. Same .wof tokens as new/index. The
+    nested <dialog> modals (agent runs, cancel confirm) keep their light
+    look since they render on the browser's top layer with backdrop. %>
+<div class="wof">
+  <div class="wof-page" style="max-width: 1400px; margin: 0 auto;">
   <%# Back link ──────────────────────────────────────────────────── %>
-  <%= link_to work_orders_path,
-              class: "inline-flex items-center gap-1 text-on-surface-variant hover:text-primary transition-colors mb-6 text-body-sm" do %>
-    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-    <%= t(".back_to_list") %>
+  <%= link_to work_orders_path, class: "wof-back", style: "margin-bottom: 16px; display: inline-flex;" do %>
+    <span class="material-symbols-outlined" style="font-size:15px">arrow_back</span>
+    <%= t(".back_to_list").to_s.upcase %>
   <% end %>
 
   <%# Header card: title + status pills + metadata + actions ──── %>
-  <section class="bg-surface-container-lowest rounded-xl p-6 custom-shadow mb-6 border border-outline-variant/30">
+  <section class="wof-card" style="margin-bottom: 24px;">
     <div class="flex flex-wrap justify-between items-start gap-6">
       <div class="space-y-2">
         <div class="flex items-center gap-3 flex-wrap">
-          <h1 class="font-headline text-headline-lg text-on-surface">
+          <h1 class="wof-title" style="font-size: 26px;">
             <%= t(".order_prefix") %><%= @work_order.vehicle.patente %>
           </h1>
           <%= status_badge(@work_order) %>
@@ -19,26 +22,26 @@
         </div>
 
         <%# Metadata row: customer + vehicle + km + date %>
-        <div class="flex flex-wrap gap-x-6 gap-y-2 text-on-surface-variant pt-1">
+        <div class="flex flex-wrap gap-x-6 gap-y-2 pt-1" style="color: var(--wof-muted);">
           <div class="flex items-center gap-1">
-            <span class="material-symbols-outlined text-[18px]">person</span>
-            <span class="text-body-sm"><%= @work_order.customer_name %></span>
+            <span class="material-symbols-outlined" style="font-size:18px">person</span>
+            <span style="font-size: 13.5px;"><%= @work_order.customer_name %></span>
           </div>
           <div class="flex items-center gap-1">
-            <span class="material-symbols-outlined text-[18px]">directions_car</span>
-            <span class="text-body-sm">
+            <span class="material-symbols-outlined" style="font-size:18px">directions_car</span>
+            <span style="font-size: 13.5px;">
               <%= [@work_order.vehicle.make, @work_order.vehicle.model, @work_order.vehicle.year ? "(#{@work_order.vehicle.year})" : nil].compact.join(" ").presence || t(".vehicle_unknown") %>
             </span>
           </div>
           <% if @work_order.mileage %>
             <div class="flex items-center gap-1">
-              <span class="material-symbols-outlined text-[18px]">speed</span>
-              <span class="text-body-sm"><%= number_with_delimiter(@work_order.mileage) %> <%= t(".mileage_unit") %></span>
+              <span class="material-symbols-outlined" style="font-size:18px">speed</span>
+              <span style="font-size: 13.5px;"><%= number_with_delimiter(@work_order.mileage) %> <%= t(".mileage_unit") %></span>
             </div>
           <% end %>
           <div class="flex items-center gap-1">
-            <span class="material-symbols-outlined text-[18px]">calendar_today</span>
-            <span class="text-body-sm"><%= l(@work_order.created_at.to_date, format: :default) %></span>
+            <span class="material-symbols-outlined" style="font-size:18px">calendar_today</span>
+            <span style="font-size: 13.5px;"><%= l(@work_order.created_at.to_date, format: :default) %></span>
           </div>
         </div>
       </div>
@@ -54,9 +57,11 @@
             <button type="button"
                     data-action="click->agent-runs-modal#open"
                     aria-label="<%= t(".agent_runs_aria_label", count: @work_order.agent_runs.size) %>"
-                    class="relative p-2 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
+                    class="relative p-2 rounded-full transition-colors"
+                    style="color: var(--wof-muted); background: var(--wof-field-bg); border: 1px solid var(--wof-field-line);">
               <span class="material-symbols-outlined">history</span>
-              <span class="absolute top-0 right-0 bg-primary text-on-primary text-[10px] font-bold leading-none rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+              <span class="absolute -top-1 -right-1 text-[10px] font-bold leading-none rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center"
+                    style="background: var(--wof-accent); color: var(--wof-accent-ink);">
                 <%= @work_order.agent_runs.size %>
               </span>
             </button>
@@ -73,13 +78,15 @@
           <div class="relative group">
             <%= button_to reanalyze_work_order_path(@work_order),
                           method: :post,
-                          class: "p-2 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-all hover:rotate-180 duration-500",
+                          class: "p-2 rounded-full transition-all hover:rotate-180 duration-500",
+                          style: "color: var(--wof-muted); background: var(--wof-field-bg); border: 1px solid var(--wof-field-line);",
                           form: { class: "inline" },
                           aria: { label: t(".reanalyze_button") } do %>
               <span class="material-symbols-outlined">sync</span>
             <% end %>
             <span role="tooltip"
-                  class="pointer-events-none absolute top-full right-0 mt-2 px-2 py-1 rounded-md bg-on-surface text-inverse-on-surface text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  class="pointer-events-none absolute top-full right-0 mt-2 px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  style="background: var(--wof-ink); color: var(--wof-accent-ink);">
               <%= t(".reanalyze_button") %>
             </span>
           </div>
@@ -91,7 +98,8 @@
             <button type="button"
                     data-action="click->cancel-dialog#open"
                     aria-label="<%= t(".cancel_button") %>"
-                    class="p-2 rounded-full hover:bg-error-container text-on-surface-variant hover:text-error transition-colors cursor-pointer">
+                    class="p-2 rounded-full transition-colors cursor-pointer"
+                    style="color: var(--wof-danger); background: var(--wof-field-bg); border: 1px solid rgba(255, 118, 118, 0.3);">
               <span class="material-symbols-outlined">cancel</span>
             </button>
             <span role="tooltip"
@@ -164,9 +172,9 @@
     </div>
 
     <%# Motivo de ingreso (moved into the header card) ─────────── %>
-    <div class="mt-6 pt-6 border-t border-outline-variant/40">
-      <p class="text-label-md text-on-surface-variant uppercase mb-2"><%= t(".reason_heading") %></p>
-      <p class="text-body-md text-on-surface whitespace-pre-wrap"><%= @work_order.reason %></p>
+    <div class="mt-6 pt-6" style="border-top: 1px solid var(--wof-panel-line);">
+      <p class="wof-label" style="margin-bottom: 8px;"><%= t(".reason_heading") %></p>
+      <p style="font-size: 15px; color: var(--wof-ink); white-space: pre-wrap; line-height: 1.5;"><%= @work_order.reason %></p>
     </div>
   </section>
 
@@ -174,9 +182,10 @@
       status. Sits between the header card and the photos/analysis
       sections so it's the first thing the user sees on a cancelled OT. %>
   <% if @work_order.cancelled? %>
-    <div class="flex items-start gap-3 bg-zinc-100 border border-zinc-300 rounded-xl p-4 mb-6">
-      <span class="material-symbols-outlined text-zinc-600 mt-0.5">block</span>
-      <p class="text-body-md text-zinc-700 leading-relaxed">
+    <div class="flex items-start gap-3 rounded-xl p-4 mb-6"
+         style="background: rgba(255, 118, 118, 0.08); border: 1px solid rgba(255, 118, 118, 0.35);">
+      <span class="material-symbols-outlined mt-0.5" style="color: var(--wof-danger);">block</span>
+      <p style="color: var(--wof-ink-soft); font-size: 14px; line-height: 1.5;">
         <%= t(".cancelled_banner_html") %>
       </p>
     </div>
@@ -184,13 +193,15 @@
 
   <%# Photos (only when attached) ─────────────────────────────────── %>
   <% if @work_order.photos.attached? %>
-    <section class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 mb-6 custom-shadow">
-      <h2 class="text-label-md text-on-surface-variant uppercase mb-3">
+    <section class="wof-card" style="margin-bottom: 24px;">
+      <h2 class="wof-label" style="margin-bottom: 14px;">
         <%= t(".photos_heading", count: @work_order.photos.count) %>
       </h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         <% @work_order.photos.each do |photo| %>
-          <%= link_to url_for(photo), target: "_blank", rel: "noopener", class: "block aspect-square rounded-lg overflow-hidden border border-outline-variant/40 hover:border-primary transition" do %>
+          <%= link_to url_for(photo), target: "_blank", rel: "noopener",
+                      class: "block aspect-square rounded-lg overflow-hidden transition",
+                      style: "border: 1px solid var(--wof-field-line);" do %>
             <%= image_tag photo.variant(resize_to_fill: [400, 400]), class: "w-full h-full object-cover" %>
           <% end %>
         <% end %>
@@ -201,4 +212,5 @@
   <%# AI analysis — Turbo subscription + state-aware partial ──────── %>
   <%= turbo_stream_from @work_order %>
   <%= render "ai_analysis_state", work_order: @work_order %>
+  </div>
 </div>

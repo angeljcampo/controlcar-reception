@@ -1,38 +1,70 @@
-<div class="max-w-5xl mx-auto px-4 py-8">
-  <div class="flex items-center justify-between mb-8">
-    <div>
-      <h1 class="text-2xl font-semibold text-zinc-900"><%= t(".title") %></h1>
-      <p class="text-sm text-zinc-500 mt-1"><%= t(".subtitle") %></p>
-    </div>
-    <%= link_to t(".new_button"),
-                new_work_order_path,
-                class: "inline-flex items-center px-4 py-2 rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm" %>
-  </div>
+<%# Listado de Órdenes — Garage dark theme.
+    Misma paleta y tipografía que /work_orders/new (.wof tokens en
+    application.css). Cards oscuras con borde tenue y hover en lima. %>
+<div class="wof">
+  <div class="wof-page" style="padding-top: 34px;">
+    <div class="wof-container" style="max-width: 1200px;">
 
-  <% if @work_orders.empty? %>
-    <div class="bg-white rounded-lg border border-zinc-200 p-12 text-center">
-      <p class="text-zinc-500"><%= t(".empty.message") %></p>
-      <%= link_to t(".empty.cta"),
-                  new_work_order_path,
-                  class: "inline-block mt-4 text-indigo-600 hover:text-indigo-700 font-medium" %>
-    </div>
-  <% else %>
-    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <% @work_orders.each do |wo| %>
-        <%= link_to work_order_path(wo),
-                    class: "block bg-white rounded-lg border border-zinc-200 shadow-sm hover:shadow-md hover:border-zinc-300 transition p-5" do %>
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-mono text-lg font-semibold text-zinc-900"><%= wo.vehicle.patente %></span>
-            <%= status_badge(wo) %>
-          </div>
-          <p class="text-sm text-zinc-700 mb-3"><%= wo.customer_name %></p>
-          <p class="text-sm text-zinc-500 line-clamp-2 mb-3"><%= wo.reason %></p>
-          <div class="flex items-center justify-between text-xs text-zinc-400">
-            <%= priority_badge(wo) %>
-            <span><%= l(wo.created_at, format: :short) %></span>
-          </div>
+      <%# Header: title + new-OT button ───────────────────────────── %>
+      <div class="wof-index-header">
+        <div>
+          <h1 class="wof-title"><%= t(".title") %></h1>
+          <p class="wof-subtitle"><%= t(".subtitle") %></p>
+        </div>
+        <%= link_to new_work_order_path, class: "wof-submit", style: "min-width: 0; padding: 0 22px; text-decoration: none;" do %>
+          <span class="material-symbols-outlined" style="font-size:18px">add</span>
+          <%= t(".new_button") %>
         <% end %>
+      </div>
+
+      <%# Empty state ─────────────────────────────────────────────── %>
+      <% if @work_orders.empty? %>
+        <div class="wof-card" style="text-align: center; padding: 56px 30px;">
+          <div style="display:inline-flex; width:56px; height:56px; border-radius:14px; background:var(--wof-accent-soft); color:var(--wof-accent); align-items:center; justify-content:center; margin-bottom:18px;">
+            <span class="material-symbols-outlined" style="font-size:28px">inbox</span>
+          </div>
+          <p style="color: var(--wof-ink-soft); font-size: 15px; margin: 0 0 18px;">
+            <%= t(".empty.message") %>
+          </p>
+          <%= link_to t(".empty.cta"), new_work_order_path,
+                      class: "wof-submit",
+                      style: "display: inline-flex; min-width: 0; padding: 0 22px; text-decoration: none;" %>
+        </div>
+      <% else %>
+
+        <%# Grid of work order cards ─────────────────────────────── %>
+        <div class="wof-grid">
+          <% @work_orders.each do |wo| %>
+            <%= link_to work_order_path(wo), class: "wof-list-card" do %>
+              <%# Top row: patente (mono) + status pill %>
+              <div class="wof-list-top">
+                <span class="wof-list-patente wof-mono"><%= wo.vehicle.patente %></span>
+                <%= status_badge(wo) %>
+              </div>
+
+              <%# Vehicle line if make/model exist %>
+              <% if wo.vehicle.make.present? || wo.vehicle.model.present? %>
+                <p class="wof-list-vehicle">
+                  <%= [wo.vehicle.make, wo.vehicle.model, wo.vehicle.year].compact.join(" ") %>
+                </p>
+              <% end %>
+
+              <%# Customer name %>
+              <p class="wof-list-customer"><%= wo.customer_name %></p>
+
+              <%# Reason (truncated) %>
+              <p class="wof-list-reason"><%= wo.reason %></p>
+
+              <%# Footer: priority pill + date %>
+              <div class="wof-list-footer">
+                <%= priority_badge(wo) %>
+                <span class="wof-list-date wof-mono"><%= l(wo.created_at, format: :short) %></span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
       <% end %>
+
     </div>
-  <% end %>
+  </div>
 </div>

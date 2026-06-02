@@ -1,26 +1,26 @@
 module WorkOrdersHelper
-  # Pill colors aligned with the latest Stitch reference: mixed case
-  # (no uppercase), rounded-full, slightly bigger horizontal padding.
+  # Pill colors for the Garage (dark) theme. Each pair is a saturated-dark
+  # background + light text so the pill stays legible on the dark panels
+  # (#11161E). `/40` opacity on the bg gives a tinted glass feel.
   PRIORITY_CLASSES = {
-    "low"      => "bg-green-100 text-green-800",
-    "medium"   => "bg-amber-100 text-amber-800",
-    "high"     => "bg-error-container text-error",
-    "critical" => "bg-error-container text-error"
+    "low"      => "bg-emerald-900/50 text-emerald-300 border border-emerald-500/30",
+    "medium"   => "bg-amber-900/50 text-amber-300 border border-amber-500/30",
+    "high"     => "bg-red-900/50 text-red-300 border border-red-500/30",
+    "critical" => "bg-red-900/60 text-red-200 border border-red-500/40"
   }.freeze
 
-  # Each status gets a light bg + dark text pair so the pill stays legible
-  # against the page surface. The colors also encode meaning:
-  #   draft     = neutral gray (not started)
-  #   analyzing = blue (in progress)
-  #   analyzed  = green (done / success)
-  #   in_review = amber (needs human attention)
-  #   cancelled = red (discarded — uses MD3 error-container tokens)
+  # Status semantics (dark theme):
+  #   draft     = neutral zinc (not started)
+  #   analyzing = blue tint (in progress)
+  #   analyzed  = lime tint (success — matches the Garage accent)
+  #   in_review = amber tint (needs human attention)
+  #   cancelled = red tint (discarded)
   STATUS_CLASSES = {
-    "draft"     => "bg-surface-container-high text-on-surface-variant",
-    "analyzing" => "bg-blue-100 text-blue-700",
-    "analyzed"  => "bg-green-100 text-green-800",
-    "in_review" => "bg-amber-100 text-amber-800",
-    "cancelled" => "bg-error-container text-on-error-container"
+    "draft"     => "bg-zinc-700/50 text-zinc-300 border border-zinc-500/30",
+    "analyzing" => "bg-blue-900/50 text-blue-300 border border-blue-500/30",
+    "analyzed"  => "bg-lime-900/40 text-lime-300 border border-lime-500/30",
+    "in_review" => "bg-amber-900/50 text-amber-300 border border-amber-500/30",
+    "cancelled" => "bg-red-900/50 text-red-300 border border-red-500/30"
   }.freeze
 
   def priority_badge(work_order)
