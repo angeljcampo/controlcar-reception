@@ -1,0 +1,88 @@
+#!/usr/bin/env ruby
+# bin/inspect-llm-payload <work_order_id>
+#
+# Builds the exact payload that AnalyzeWorkOrderJob would send to OpenAI
+# for the given WorkOrder and prints it. Useful to verify that images
+# really land in the API request — without actually spending tokens.
+#
+# Outputs:
+#   - System prompt length + first 200 chars
+#   - User content parts: text length + image metadata (mime, bytes,
+#     magic header, base64 preview)
+#   - Image existence check (S3/local — wherever the blob lives)
+#
+# Usage:
+#   bin/inspect-llm-payload 9        # inspect WO id=9
+#   bin/inspect-llm-payload 9 --raw  # also dump the full base64 (BIG)
+
+ENV["RAILS_ENV"] ||= "development"
+require_relative "../config/environment"
+
+work_order_id = ARGV[0]&.to_i
+show_raw = ARGV.include?("--raw")
+
+if work_order_id.nil? || work_order_id <= 0
+  abort "Usage: bin/inspect-llm-payload <work_order_id> [--raw]"
+end
+
+wo = WorkOrder.find(work_order_id)
+
+puts "=" * 70
+puts "WorkOrder ##{wo.id} — patente #{wo.vehicle.patente}"
+puts "  motivo: #{wo.reason.truncate(80)}"
+puts "  photos: #{wo.photos.count}"
+puts "=" * 70
+
+agent = Ai::Agents::MechanicDiagnosticAgent.new(
+  provider: Ai::Providers::OpenAIProvider.new,
+  context:  { work_order: wo }
+)
+
+sys = agent.send(:system_prompt)
+messages = agent.send(:initial_messages)
+
+puts
+puts "── SYSTEM PROMPT (#{sys.length} chars) " + ("─" * 30)
+puts sys[0, 300] + (sys.length > 300 ? "\n[... truncado, total #{sys.length} chars]" : "")
+
+puts
+puts "── USER MESSAGE " + ("─" * 50)
+messages.each do |msg|
+  Array(msg[:content]).each_with_index do |part, i|
+    case part[:type]
+    when "text"
+      txt = part[:text].to_s
+      puts "  [#{i}] TEXT (#{txt.length} chars):"
+      puts txt.lines.map { |l| "      #{l}" }.join
+    when "image_url"
+      url = part.dig(:image_url, :url).to_s
+      if (m = url.match(/\Adata:([^;]+);base64,(.+)\z/m))
+        mime    = m[1]
+        b64     = m[2]
+        bytes   = b64.length * 3 / 4
+        sample  = b64[0, 60]
+        magic   = Base64.decode64(b64[0, 8]).unpack("C4")
+                       .map { |b| b.to_s(16).rjust(2, "0").upcase }.join(" ")
+        puts "  [#{i}] IMAGE:"
+        puts "      mime:        #{mime}"
+        puts "      bytes (raw): #{bytes} (≈ #{(bytes / 1024.0).round(1)} KB)"
+        puts "      base64 len:  #{b64.length}"
+        puts "      magic:       #{magic}  ← JPEG=FF D8 FF, PNG=89 50 4E 47"
+        puts "      detail:      #{part.dig(:image_url, :detail) || '(default)'}"
+        puts "      base64[0,60]: #{sample}..."
+        if show_raw
+          puts "      ─── FULL BASE64 ───"
+          puts b64.scan(/.{1,80}/).map { |chunk| "      #{chunk}" }.join("\n")
+        end
+      else
+        puts "  [#{i}] IMAGE (malformed): #{url[0, 80]}..."
+      end
+    end
+  end
+end
+
+puts
+puts "=" * 70
+puts "DONE — no API call was made, no tokens spent."
+puts "Pass --raw to dump the full base64 payload of each image."
+puts "=" * 70

@@ -76,12 +76,27 @@ module AgentRunsHelper
         end
 
         if image_parts.any?
-          mimes = image_parts.map { |p| fetch_log(p, :mime) }
-          sections << tag.p(class: "text-body-sm text-sky-800 mt-2") do
-            safe_join([
-              tag.span("Imágenes adjuntas (#{image_parts.size}): ", class: "font-semibold"),
-              mimes.join(", ")
-            ])
+          sections << tag.div(class: "mt-2") do
+            header = tag.p("Imágenes adjuntas (#{image_parts.size})",
+                           class: "text-label-md text-sky-800 font-semibold uppercase mb-1")
+            rows = image_parts.map do |p|
+              mime  = fetch_log(p, :mime)
+              bytes = fetch_log(p, :bytes)
+              magic = fetch_log(p, :magic_bytes)
+              size_kb = bytes ? "#{(bytes / 1024.0).round(1)} KB" : nil
+              # Magic bytes are the file's actual format signature (JPEG
+              # always starts with FF D8 FF, PNG with 89 50 4E 47, etc.).
+              # Showing them here proves the agent got real image bytes,
+              # not nil or an empty placeholder.
+              parts = [
+                tag.code(mime, class: "bg-white px-1.5 py-0.5 rounded text-[11px]"),
+                size_kb,
+                magic ? "magic: #{magic}" : nil
+              ].compact
+              tag.li(safe_join(parts, " · "), class: "text-body-sm text-on-surface")
+            end
+            list = tag.ul(safe_join(rows), class: "list-disc list-inside space-y-0.5 ml-1")
+            safe_join([header, list])
           end
         end
       end

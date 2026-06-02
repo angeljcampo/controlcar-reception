@@ -179,15 +179,19 @@ module Ai
       end
 
       # Walks the message array and returns a JSON-safe summary: text parts
-      # verbatim, image parts as `{ type: "image", mime: "image/jpeg" }`.
-      # Strips the base64 url so the log stays readable + cheap to store.
+      # verbatim, image parts as `{ type: "image", mime, bytes, magic }`.
+      # The base64 itself is stripped (saves ~80KB+ per image in the DB)
+      # but we keep enough metadata to PROVE the image was real and not
+      # nil/empty: mime type, byte count, and the first 4 raw bytes
+      # decoded from the base64 (the "magic number" — JPEG starts with
+      # FF D8 FF, PNG with 89 50 4E 47, etc.).
       def summarize_content(messages)
         messages.map do |msg|
           parts = Array(msg[:content])
           summarized_parts = parts.map do |part|
             case part[:type]
             when "text"      then { type: "text", text: part[:text] }
-            when "image_url" then { type: "image", mime: extract_mime(part) }
+            when "image_url" then summarize_image_part(part)
             else                  part
             end
           end
@@ -195,11 +199,21 @@ module Ai
         end
       end
 
-      def extract_mime(image_part)
-        url = image_part.dig(:image_url, :url).to_s
-        # data URLs look like "data:image/jpeg;base64,xxx..."
-        match = url.match(/\Adata:([^;]+);/)
-        match ? match[1] : "unknown"
+      def summarize_image_part(part)
+        url = part.dig(:image_url, :url).to_s
+        mime_match = url.match(/\Adata:([^;]+);base64,(.+)\z/m)
+        return { type: "image", mime: "unknown" } unless mime_match
+
+        mime    = mime_match[1]
+        b64     = mime_match[2]
+        bytes   = b64.length * 3 / 4 # base64 → raw bytes approx
+        magic   = begin
+                    Base64.decode64(b64[0, 8]).unpack("C4").map { |b| b.to_s(16).rjust(2, "0").upcase }.join(" ")
+                  rescue StandardError
+                    "?"
+                  end
+
+        { type: "image", mime: mime, bytes: bytes, magic_bytes: magic }
       end
 
       def log_llm_response(iteration, response)
