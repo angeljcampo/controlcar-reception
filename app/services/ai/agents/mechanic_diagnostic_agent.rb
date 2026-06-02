@@ -138,14 +138,14 @@ module Ai
       # a bare `rescue` misses it). We catch it explicitly so the agent
       # degrades gracefully to a text-only analysis instead of crashing.
       def encode_for_openai(photo, blob)
-        return [blob.download, blob.content_type] if OPENAI_SUPPORTED_MIMES.include?(blob.content_type)
+        return [ blob.download, blob.content_type ] if OPENAI_SUPPORTED_MIMES.include?(blob.content_type)
 
         Rails.logger.info("[MechanicDiagnosticAgent] transcoding photo #{photo.id} (#{blob.content_type}) to JPEG")
-        variant = photo.variant(format: :jpg, resize_to_limit: [2048, 2048], saver: { quality: 85 }).processed
-        [variant.download, "image/jpeg"]
+        variant = photo.variant(format: :jpg, resize_to_limit: [ 2048, 2048 ], saver: { quality: 85 }).processed
+        [ variant.download, "image/jpeg" ]
       rescue StandardError, LoadError => e
         Rails.logger.warn("[MechanicDiagnosticAgent] could not transcode photo #{photo.id} (#{blob.content_type}): #{e.message}")
-        [nil, nil]
+        [ nil, nil ]
       end
     end
   end

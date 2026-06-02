@@ -117,14 +117,14 @@ module AiAnalysisHelper
   # Returns [title, description]; title is nil when no clean split
   # exists so the view falls back to a description-only card.
   def split_step_action(action)
-    return [nil, action.to_s] if action.blank?
+    return [ nil, action.to_s ] if action.blank?
 
     if (m = action.match(/\A(.{5,80}?)[:;]\s+(.+)\z/m))
       title = m[1].strip
       desc  = m[2].strip.sub(/\A./, &:upcase)
-      return [title, desc]
+      return [ title, desc ]
     end
 
-    [nil, action.to_s]
+    [ nil, action.to_s ]
   end
 end
