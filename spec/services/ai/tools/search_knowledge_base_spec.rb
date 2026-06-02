@@ -54,7 +54,7 @@ RSpec.describe Ai::Tools::SearchKnowledgeBase do
     end
 
     it "preserva vector_distance y vector_rank en el resultado fusionado" do
-      vec = [{ chunk: chunk_a, vector_rank: 2, vector_distance: 0.42 }]
+      vec = [ { chunk: chunk_a, vector_rank: 2, vector_distance: 0.42 } ]
       kw  = []
 
       fused = tool.send(:reciprocal_rank_fusion, vec, kw, top_k: 1)
@@ -69,7 +69,7 @@ RSpec.describe Ai::Tools::SearchKnowledgeBase do
     before do
       # Stub el embedder para no llamar OpenAI
       allow(Ai::Ingestion::BatchEmbedder).to receive(:call)
-        .and_return({ embeddings: [Array.new(1536, 0.0)], total_tokens: 5 })
+        .and_return({ embeddings: [ Array.new(1536, 0.0) ], total_tokens: 5 })
 
       # Stub el keyword search a vacío para enfocarnos en vector + threshold
       allow(tool).to receive(:keyword_search).and_return([])
@@ -80,7 +80,7 @@ RSpec.describe Ai::Tools::SearchKnowledgeBase do
         chunk = double("chunk", id: 1, breadcrumb: "x", content: "x", page_number: 1, knowledge_document: double(title: "D"), metadata: {}, neighbor_distance: 0.4)
         # 0.4 < 0.65 → strong
         allow(tool).to receive(:vector_search_with_metrics)
-          .and_return([[{ chunk: chunk, vector_rank: 0, vector_distance: 0.4 }], 5])
+          .and_return([ [ { chunk: chunk, vector_rank: 0, vector_distance: 0.4 } ], 5 ])
 
         result = tool.call(query: query, top_k: 5)
 
@@ -94,7 +94,7 @@ RSpec.describe Ai::Tools::SearchKnowledgeBase do
         chunk = double("chunk", id: 1, breadcrumb: "x", content: "x", page_number: 1, knowledge_document: double(title: "D"), metadata: {}, neighbor_distance: 0.7)
         # 0.7 >= 0.65 → weak
         allow(tool).to receive(:vector_search_with_metrics)
-          .and_return([[{ chunk: chunk, vector_rank: 0, vector_distance: 0.7 }], 5])
+          .and_return([ [ { chunk: chunk, vector_rank: 0, vector_distance: 0.7 } ], 5 ])
 
         result = tool.call(query: query, top_k: 5)
 

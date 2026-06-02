@@ -13,7 +13,7 @@ RSpec.describe Ai::Agents::BaseAgent do
       def self.name = "TestAgent"
       def system_prompt = "You are a test agent."
       def initial_messages
-        [{ role: "user", content: [{ type: "text", text: "test prompt" }] }]
+        [ { role: "user", content: [ { type: "text", text: "test prompt" } ] } ]
       end
     end
   end
@@ -36,7 +36,7 @@ RSpec.describe Ai::Agents::BaseAgent do
 
       def follow_up_messages(_response, _tool_results)
         @follow_ups_emitted += 1
-        [{ role: "tool", content: "ack" }]
+        [ { role: "tool", content: "ack" } ]
       end
     end.new
   end
@@ -66,7 +66,7 @@ RSpec.describe Ai::Agents::BaseAgent do
     context "happy path: LLM llama directamente respond_with_analysis" do
       before do
         provider.responses_queue << fake_response(
-          tool_uses: [{ id: "1", name: "respond_with_analysis", arguments: { category: "engine" } }],
+          tool_uses: [ { id: "1", name: "respond_with_analysis", arguments: { category: "engine" } } ],
           usage: { prompt_tokens: 100, completion_tokens: 50 }
         )
       end
@@ -104,12 +104,12 @@ RSpec.describe Ai::Agents::BaseAgent do
 
         # 1ra respuesta: llama get_vehicle_history
         provider.responses_queue << fake_response(
-          tool_uses: [{ id: "1", name: "get_vehicle_history", arguments: { patente: "X" } }],
+          tool_uses: [ { id: "1", name: "get_vehicle_history", arguments: { patente: "X" } } ],
           usage: { prompt_tokens: 100, completion_tokens: 30 }
         )
         # 2da respuesta: llama final tool
         provider.responses_queue << fake_response(
-          tool_uses: [{ id: "2", name: "respond_with_analysis", arguments: { category: "engine" } }],
+          tool_uses: [ { id: "2", name: "respond_with_analysis", arguments: { category: "engine" } } ],
           usage: { prompt_tokens: 150, completion_tokens: 40 }
         )
       end
@@ -168,7 +168,7 @@ RSpec.describe Ai::Agents::BaseAgent do
         # MAX_ITERATIONS = 5 — encolamos 5 respuestas non-final
         5.times do |i|
           provider.responses_queue << fake_response(
-            tool_uses: [{ id: i.to_s, name: "get_vehicle_history", arguments: {} }]
+            tool_uses: [ { id: i.to_s, name: "get_vehicle_history", arguments: {} } ]
           )
         end
       end
@@ -194,10 +194,10 @@ RSpec.describe Ai::Agents::BaseAgent do
         end
 
         provider.responses_queue << fake_response(
-          tool_uses: [{ id: "1", name: "search_knowledge_base", arguments: { query: "x" } }]
+          tool_uses: [ { id: "1", name: "search_knowledge_base", arguments: { query: "x" } } ]
         )
         provider.responses_queue << fake_response(
-          tool_uses: [{ id: "2", name: "respond_with_analysis", arguments: { category: "x" } }]
+          tool_uses: [ { id: "2", name: "respond_with_analysis", arguments: { category: "x" } } ]
         )
 
         agent.run

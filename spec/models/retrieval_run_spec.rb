@@ -39,7 +39,7 @@ RSpec.describe RetrievalRun do
       ])
 
       ranks = rr.matches.map { |r| r["fused_rank"] }
-      expect(ranks).to eq([0, 1, 2])
+      expect(ranks).to eq([ 0, 1, 2 ])
     end
 
     it "tolera results vacío" do

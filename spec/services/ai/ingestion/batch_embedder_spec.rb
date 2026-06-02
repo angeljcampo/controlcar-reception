@@ -6,7 +6,7 @@ RSpec.describe Ai::Ingestion::BatchEmbedder do
   before { ENV["OPENAI_API_KEY"] = "sk-test-fake-key" }
 
   describe ".call" do
-    let(:texts) { ["primer texto", "segundo texto", "tercer texto"] }
+    let(:texts) { [ "primer texto", "segundo texto", "tercer texto" ] }
 
     def stub_openai_embeddings(embeddings:, tokens: 30)
       stub_request(:post, "https://api.openai.com/v1/embeddings")

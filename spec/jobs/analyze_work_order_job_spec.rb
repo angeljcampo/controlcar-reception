@@ -17,7 +17,7 @@ RSpec.describe AnalyzeWorkOrderJob do
   let(:analysis_args) {
     {
       category:              "engine",
-      possible_failures:     [{ "component" => "bobina", "probability" => "high", "reasoning" => "x" }],
+      possible_failures:     [ { "component" => "bobina", "probability" => "high", "reasoning" => "x" } ],
       priority:              "high",
       priority_reason:       "Riesgo de daño",
       next_steps:            [],

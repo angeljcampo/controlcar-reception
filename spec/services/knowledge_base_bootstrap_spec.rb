@@ -21,12 +21,12 @@ RSpec.describe KnowledgeBaseBootstrap do
   describe ".call" do
     context "con 1 PDF disponible en el filesystem" do
       let(:catalog) {
-        [{
+        [ {
           filename:          "test.pdf",
           title:             "Test Manual",
           chunking_strategy: :token_window,
           needs_translation: false
-        }]
+        } ]
       }
 
       before do
@@ -51,7 +51,7 @@ RSpec.describe KnowledgeBaseBootstrap do
       it "devuelve Result con la lista de queued" do
         result = described_class.call(mode: :async, translate: false)
 
-        expect(result.queued).to eq(["Test Manual"])
+        expect(result.queued).to eq([ "Test Manual" ])
         expect(result.skipped).to be_empty
         expect(result.missing).to be_empty
       end
@@ -59,12 +59,12 @@ RSpec.describe KnowledgeBaseBootstrap do
 
     context "idempotencia: si el doc YA está :ready, skipea" do
       let(:catalog) {
-        [{
+        [ {
           filename:          "test.pdf",
           title:             "Already Done",
           chunking_strategy: :token_window,
           needs_translation: false
-        }]
+        } ]
       }
 
       before do
@@ -86,19 +86,19 @@ RSpec.describe KnowledgeBaseBootstrap do
       it "reporta el doc como :skipped" do
         result = described_class.call(mode: :async, translate: false)
 
-        expect(result.skipped).to eq(["Already Done"])
+        expect(result.skipped).to eq([ "Already Done" ])
         expect(result.queued).to be_empty
       end
     end
 
     context "recover: si el doc existe pero está :failed, lo re-procesa" do
       let(:catalog) {
-        [{
+        [ {
           filename:          "test.pdf",
           title:             "Retry Me",
           chunking_strategy: :token_window,
           needs_translation: false
-        }]
+        } ]
       }
 
       before do
@@ -135,19 +135,19 @@ RSpec.describe KnowledgeBaseBootstrap do
       it "skipea el missing y procesa los demás (no falla todo)" do
         result = described_class.call(mode: :async, translate: false)
 
-        expect(result.queued).to eq(["Existe"])
-        expect(result.missing).to eq(["missing.pdf"])
+        expect(result.queued).to eq([ "Existe" ])
+        expect(result.missing).to eq([ "missing.pdf" ])
       end
     end
 
     context "needs_translation: false fuerza translate=false sin importar el flag global" do
       let(:catalog) {
-        [{
+        [ {
           filename:          "spanish.pdf",
           title:             "Manual ES",
           chunking_strategy: :token_window,
           needs_translation: false # ya está en español
-        }]
+        } ]
       }
 
       before { File.write(tmp_pdfs_dir.join("spanish.pdf"), "fake") }
