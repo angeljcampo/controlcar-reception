@@ -11,10 +11,10 @@ development:
 test:
   adapter: test
 
+# Production uses Redis (the same instance Sidekiq uses) so Action Cable
+# broadcasts work across processes (worker → web) without needing a
+# dedicated cable DB. REDIS_URL is provided by Render's Key Value Store.
 production:
-  adapter: solid_cable
-  connects_to:
-    database:
-      writing: cable
-  polling_interval: 0.1.seconds
-  message_retention: 1.day
+  adapter: redis
+  url: <%= ENV.fetch("REDIS_URL") %>
+  channel_prefix: controlcar_reception_production

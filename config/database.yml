@@ -84,17 +84,9 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+# Production uses a single Postgres database (DATABASE_URL set by Render).
+# Cable lives in Redis (see cable.yml) and cache lives in :memory_store
+# (see environments/production.rb), so we don't need a multi-DB setup.
 production:
-  primary: &primary_production
-    <<: *default
-    database: controlcar_reception_production
-    username: controlcar_reception
-    password: <%= ENV["CONTROLCAR_RECEPTION_DATABASE_PASSWORD"] %>
-  cache:
-    <<: *primary_production
-    database: controlcar_reception_production_cache
-    migrations_paths: db/cache_migrate
-  cable:
-    <<: *primary_production
-    database: controlcar_reception_production_cable
-    migrations_paths: db/cable_migrate
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>

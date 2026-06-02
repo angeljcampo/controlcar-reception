@@ -1,0 +1,121 @@
+# Render Blueprint — define todos los servicios de la app de una vez.
+# Cuando lo apliques en el dashboard ("New +" → "Blueprint" → este repo),
+# Render crea: 1 Postgres (con pgvector), 1 Redis (Key-Value Store),
+# 1 web service (Puma) y 1 worker service (Sidekiq).
+#
+# Las env vars con `sync: false` NO se sincronizan desde el yaml — te
+# pide setearlas manualmente en el dashboard la primera vez. Eso es a
+# propósito: nunca commiteamos secretos al repo.
+
+databases:
+  - name: controlcar-db
+    plan: free
+    region: oregon
+    postgresMajorVersion: 16
+    # pgvector lo habilitamos vía la migration `enable_vector_extension`
+    # (CREATE EXTENSION vector) que corre en preDeployCommand del web.
+
+services:
+  # ─── Redis (Sidekiq + ActionCable broadcasts) ──────────────────────
+  - type: keyvalue
+    name: controlcar-redis
+    plan: free
+    region: oregon
+    ipAllowList: []  # Solo accesible desde la red privada de Render.
+
+  # ─── Web (Puma) ────────────────────────────────────────────────────
+  - type: web
+    name: controlcar-web
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    # Render asigna $PORT dinámicamente; Puma lo lee via ENV.
+    dockerCommand: bundle exec puma -C config/puma.rb
+    # Migrations corren ANTES del start, dentro del deploy lifecycle.
+    # `db:prepare` es safe: crea la BD si no existe, migra si hace falta.
+    preDeployCommand: bundle exec rails db:prepare
+    healthCheckPath: /up
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: RAILS_MAX_THREADS
+        value: "3"
+      - key: ACTIVE_STORAGE_SERVICE
+        value: amazon
+      - key: SECRET_KEY_BASE
+        generateValue: true     # Render auto-genera al crear, queda fijo.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: controlcar-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: controlcar-redis
+          property: connectionString
+      # ─── Setear manualmente en el dashboard la primera vez ────────
+      - key: RAILS_MASTER_KEY
+        sync: false   # pegar el contenido de config/master.key local
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AWS_S3_BUCKET
+        sync: false
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+
+  # ─── Worker (Sidekiq) ──────────────────────────────────────────────
+  - type: worker
+    name: controlcar-worker
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerCommand: bundle exec sidekiq -C config/sidekiq.yml
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: SIDEKIQ_CONCURRENCY
+        value: "3"
+      - key: ACTIVE_STORAGE_SERVICE
+        value: amazon
+      - key: SECRET_KEY_BASE
+        # Worker comparte el mismo secret que el web (necesario para
+        # decifrar mensajes cifrados de ActiveJob entre procesos).
+        fromService:
+          type: web
+          name: controlcar-web
+          envVarKey: SECRET_KEY_BASE
+      - key: DATABASE_URL
+        fromDatabase:
+          name: controlcar-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: controlcar-redis
+          property: connectionString
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AWS_S3_BUCKET
+        sync: false
+      - key: AWS_REGION
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
