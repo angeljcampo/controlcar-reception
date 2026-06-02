@@ -10,9 +10,9 @@
 
 **Demo en vivo:** **<https://controlcar-web.onrender.com>**
 
-Si prefieres evaluar el flujo directamente sin clonar, abrí ese link. La primera carga puede tardar 30-60s mientras Render despierta el container (plan free). La knowledge base se carga desde el botón **"Cargar manuales precargados"** en `/knowledge` la primera vez — ~10 min con traducción, ~1 min sin. Una vez seedeada, el RAG funciona en cualquier OT que crees.
+Si prefieres evaluar el flujo directamente sin clonar, abre ese link. La primera carga puede tardar 30-60s mientras Render despierta el container (plan free). La knowledge base se carga desde el botón **"Cargar manuales precargados"** en `/knowledge` la primera vez — ~10 min con traducción, ~1 min sin. Una vez seedeada, el RAG funciona en cualquier OT que se cree.
 
-Si querés bajar el repo y correrlo local, seguí el [Quick start](#quick-start) más abajo.
+Si prefieres bajar el repo y correrlo local, sigue el [Quick start](#quick-start) más abajo.
 
 ---
 
@@ -152,7 +152,7 @@ SKIP_KB_TRANSLATE=1 bin/rails db:seed
 #     español, rápido ~30s). Para ingest con traducción ES (mejor
 #     recall semántico, ~10 min y ~$0.05 de OpenAI):
 #         bin/rails db:seed
-#   También podés saltarte la KB y disparar el ingest después
+#   También se puede saltar la KB y disparar el ingest después
 #   desde el botón "Cargar manuales precargados" en /knowledge:
 #         SKIP_KB_SEED=1 bin/rails db:seed
 
@@ -490,7 +490,7 @@ Roadmap detallado en [docs/PLAN.md](docs/PLAN.md) y [docs/architecture.md](docs/
 
 **Camino largo (clonar + correr local):** seguir [Quick start](#quick-start).
 
-**Si querés revisar código** en orden de impacto:
+**Para revisar código** en orden de impacto:
 
 1. `app/services/ai/agents/base_agent.rb` — el tool loop con MAX_ITERATIONS + agent_run injection
 2. `app/prompts/agents/mechanic_diagnostic.md` — el system prompt completo con calibración + ejemplos
@@ -545,7 +545,7 @@ Por default `db:seed` ingesta los 3 PDFs precargados **con traducción al españ
 SKIP_KB_TRANSLATE=1 bin/rails db:seed   # ingesta sin traducir (~30s, gratis)
 SKIP_KB_SEED=1 bin/rails db:seed         # solo OTs demo, KB vacía
 ```
-Una vez levantada la app, podés cargar la KB después desde el botón **"Cargar manuales precargados"** en `/knowledge`.
+Una vez levantada la app, se puede cargar la KB después desde el botón **"Cargar manuales precargados"** en `/knowledge`.
 
 **En Render: la app responde lento la primera vez**
 Plan free duerme los containers tras 15 min de inactividad. Primer request despierta el container (~30-60s). Las siguientes son normales.

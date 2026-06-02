@@ -2,7 +2,7 @@
 
 Este doc complementa el [README](../README.md) y el [plan original](./PLAN.md). Foco en las decisiones técnicas de **Fase 3 (Retrieval-Augmented Generation)** y en lo que quedó como *future work* honestamente documentado.
 
-> Si venís a evaluar el código: empezá por la sección [Diagrama del flujo RAG](#diagrama-del-flujo-rag) para tener el mapa mental, después saltá a la decisión que te interese.
+> Para evaluar el código: empezar por la sección [Diagrama del flujo RAG](#diagrama-del-flujo-rag) para tener el mapa mental, después saltar a la decisión de interés.
 
 ---
 
@@ -111,7 +111,7 @@ Implementación en [`Ai::Tools::SearchKnowledgeBase#reciprocal_rank_fusion`](../
 
 Después de fusionar, el tool computa `strong_matches_count`: cuántos de los chunks fetcheados tienen `vector_distance < STRONG_MATCH_THRESHOLD` (0.65). Si es 0, devuelve `threshold_passed: false` al LLM.
 
-El system prompt instruye al LLM: si `threshold_passed: false`, **no cites** esos chunks como evidencia firme, bajá tu confidence y considerá marcar `requires_human_review: true`. Es la barrera contra alucinaciones citadas.
+El system prompt instruye al LLM: si `threshold_passed: false`, **no cites** esos chunks como evidencia firme, baja tu confidence y considera marcar `requires_human_review: true`. Es la barrera contra alucinaciones citadas.
 
 ---
 
