@@ -172,16 +172,11 @@
       </div>
     </div>
 
-    <%# Motivo de ingreso (moved into the header card) ─────────── %>
-    <div class="mt-6 pt-6" style="border-top: 1px solid var(--wof-panel-line);">
-      <p class="wof-label" style="margin-bottom: 8px;"><%= t(".reason_heading") %></p>
-      <p style="font-size: 15px; color: var(--wof-ink); white-space: pre-wrap; line-height: 1.5;"><%= @work_order.reason %></p>
-    </div>
   </section>
 
   <%# Cancelled banner — only shows when the WO is in the cancelled
-      status. Sits between the header card and the photos/analysis
-      sections so it's the first thing the user sees on a cancelled OT. %>
+      status. Sits between the header card and the motivo/fotos row
+      so it's the first thing the user sees on a cancelled OT. %>
   <% if @work_order.cancelled? %>
     <div class="flex items-start gap-3 rounded-xl p-4 mb-6"
          style="background: rgba(255, 118, 118, 0.08); border: 1px solid rgba(255, 118, 118, 0.35);">
@@ -192,23 +187,37 @@
     </div>
   <% end %>
 
-  <%# Photos (only when attached) ─────────────────────────────────── %>
-  <% if @work_order.photos.attached? %>
-    <section class="wof-card" style="margin-bottom: 24px;">
-      <h2 class="wof-label" style="margin-bottom: 14px;">
-        <%= t(".photos_heading", count: @work_order.photos.count) %>
-      </h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        <% @work_order.photos.each do |photo| %>
-          <%= link_to url_for(photo), target: "_blank", rel: "noopener",
-                      class: "block aspect-square rounded-lg overflow-hidden transition",
-                      style: "border: 1px solid var(--wof-field-line);" do %>
-            <%= image_tag photo.variant(resize_to_fill: [400, 400]), class: "w-full h-full object-cover" %>
-          <% end %>
-        <% end %>
-      </div>
+  <%# Motivo + Fotos — side by side on desktop, stacked on mobile.
+      When there are no photos, the motivo card spans the full row so
+      the layout stays balanced. %>
+  <% has_photos = @work_order.photos.attached? %>
+  <div class="grid <%= 'lg:grid-cols-3' if has_photos %> gap-6 mb-6">
+    <%# Motivo de ingreso (2/3 width when photos are present) %>
+    <section class="wof-card <%= 'lg:col-span-2' if has_photos %>">
+      <p class="wof-label" style="margin-bottom: 10px;"><%= t(".reason_heading") %></p>
+      <p style="font-size: 15px; color: var(--wof-ink); white-space: pre-wrap; line-height: 1.55; margin: 0;"><%= @work_order.reason %></p>
     </section>
-  <% end %>
+
+    <%# Photos (only when attached) — 1/3 width %>
+    <% if has_photos %>
+      <section class="wof-card">
+        <h2 class="wof-label" style="margin-bottom: 14px;">
+          <%= t(".photos_heading", count: @work_order.photos.count) %>
+        </h2>
+        <%# Auto-fill grid: cada thumbnail ~120px de ancho. Caben 2-3
+            por fila en la columna estrecha (1/3 del wof-container). %>
+        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(110px, 130px));">
+          <% @work_order.photos.each do |photo| %>
+            <%= link_to url_for(photo), target: "_blank", rel: "noopener",
+                        class: "block aspect-square rounded-lg overflow-hidden transition",
+                        style: "border: 1px solid var(--wof-field-line);" do %>
+              <%= image_tag photo.variant(resize_to_fill: [260, 260]), class: "w-full h-full object-cover" %>
+            <% end %>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  </div>
 
   <%# AI analysis — Turbo subscription + state-aware partial ──────── %>
   <%= turbo_stream_from @work_order %>
