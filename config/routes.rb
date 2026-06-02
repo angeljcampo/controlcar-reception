@@ -10,6 +10,7 @@ Rails.application.routes.draw do
   resources :work_orders, only: %i[index new create show] do
     member do
       post :reanalyze
+      post :cancel
     end
 
     # Lazy-loaded Turbo Frame panel on the show page. Lists every

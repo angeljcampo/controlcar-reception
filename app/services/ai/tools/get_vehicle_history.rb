@@ -32,7 +32,7 @@ module Ai
           {
             type: "object",
             additionalProperties: false,
-            required: ["patente"],
+            required: [ "patente" ],
             properties: {
               patente: {
                 type: "string",

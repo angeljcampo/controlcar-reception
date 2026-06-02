@@ -1,6 +1,6 @@
 class WorkOrder < ApplicationRecord
   PRIORITIES = %w[low medium high critical].freeze
-  STATUSES = %w[draft analyzing analyzed in_review].freeze
+  STATUSES = %w[draft analyzing analyzed in_review cancelled].freeze
 
   # Virtual attribute used by the form. The controller normalizes it and
   # find_or_creates the underlying Vehicle so the form looks like one entity.
@@ -28,6 +28,13 @@ class WorkOrder < ApplicationRecord
   # Convenience: fetch the latest agent run for display purposes.
   def latest_agent_run
     agent_runs.order(created_at: :desc).first
+  end
+
+  # Whether this order can still be cancelled. Used both by the show
+  # view (to decide if the cancel button is shown) and by the controller
+  # to short-circuit duplicate POSTs to /cancel.
+  def cancellable?
+    !cancelled?
   end
 
   # Aggregated AI usage stats across every AnalyzeWorkOrderJob attempt for

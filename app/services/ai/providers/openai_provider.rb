@@ -12,7 +12,12 @@ module Ai
       # GPT-5 (and o-family reasoning models) reject the legacy max_tokens
       # parameter; max_completion_tokens replaces it and is accepted by all
       # current chat models.
-      DEFAULT_MAX_COMPLETION_TOKENS = 4096
+      #
+      # 16384 instead of 4096 because reasoning models burn a large slice of
+      # the completion budget on internal reasoning_tokens BEFORE emitting
+      # the final structured output. At 4096 we hit the cap and got
+      # truncated responses with empty tool_uses (LLM "ended" mid-thought).
+      DEFAULT_MAX_COMPLETION_TOKENS = 16384
 
       class MissingApiKey < StandardError; end
       class ApiError < StandardError; end
@@ -32,7 +37,7 @@ module Ai
         api_response = @client.chat(
           parameters: {
             model:                  @model,
-            messages:               [{ role: "system", content: system }, *messages],
+            messages:               [ { role: "system", content: system }, *messages ],
             tools:                  tools,
             tool_choice:            "auto",
             max_completion_tokens:  DEFAULT_MAX_COMPLETION_TOKENS

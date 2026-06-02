@@ -7,8 +7,11 @@ class AnalyzeWorkOrderJob < ApplicationJob
   discard_on Ai::Providers::OpenAIProvider::MissingApiKey
 
   # Transient provider/network failures: retry up to 3 times with backoff.
+  # TruncatedResponse is retryable because a fresh attempt frequently lands
+  # under the (now-bumped) completion-token cap.
   retry_on Ai::Providers::OpenAIProvider::ApiError,
            Ai::Agents::BaseAgent::MaxIterationsExceeded,
+           Ai::Agents::BaseAgent::TruncatedResponse,
            Net::ReadTimeout,
            wait: 10.seconds,
            attempts: 3
@@ -16,14 +19,30 @@ class AnalyzeWorkOrderJob < ApplicationJob
   # @param work_order_id [Integer]
   def perform(work_order_id)
     work_order = WorkOrder.find(work_order_id)
+
+    # If the user cancelled the WO before the worker picked up the job,
+    # bail out immediately — we don't want to burn OpenAI tokens nor
+    # flip the status away from "cancelled".
+    if work_order.cancelled?
+      Rails.logger.info("[AnalyzeWorkOrderJob] WO #{work_order.id} is cancelled, skipping run")
+      return
+    end
+
     work_order.update!(status: "analyzing") unless work_order.analyzing?
     broadcast_safely(work_order)
 
     analysis_args = run_agent(work_order)
 
     work_order.transaction do
-      persist_analysis(work_order, analysis_args)
-      work_order.update!(status: "analyzed")
+      # The user may have cancelled while the agent was running. Honor
+      # the cancellation: don't persist the analysis or flip back to
+      # "analyzed" — the WO stays cancelled.
+      if work_order.reload.cancelled?
+        Rails.logger.info("[AnalyzeWorkOrderJob] WO #{work_order.id} was cancelled mid-run, discarding analysis")
+      else
+        persist_analysis(work_order, analysis_args)
+        work_order.update!(status: "analyzed")
+      end
     end
 
     # Post-success broadcast is best-effort. A flaky cable connection
@@ -31,10 +50,14 @@ class AnalyzeWorkOrderJob < ApplicationJob
     # errors here (status stays "analyzed").
     broadcast_safely(work_order.reload)
   rescue => e
-    # Real failure path: agent or persistence raised. Roll back to "draft"
-    # so the UI shows the OT as not-analyzed (the user can re-trigger).
-    work_order&.update(status: "draft")
-    broadcast_safely(work_order.reload) if work_order
+    # Real failure path: agent or persistence raised. Roll back to
+    # "draft" so the UI shows the OT as not-analyzed (the user can
+    # re-trigger). Respect cancellation: if the user cancelled mid-run,
+    # the WO stays cancelled — don't undo it via a draft flip.
+    if work_order && !work_order.reload.cancelled?
+      work_order.update(status: "draft")
+      broadcast_safely(work_order)
+    end
     raise
   end
 
@@ -62,6 +85,14 @@ class AnalyzeWorkOrderJob < ApplicationJob
       observations:          args[:observations]
     )
     analysis.save!
+
+    # The LLM owns priority — the create form no longer asks the user for
+    # it. Sync the WorkOrder's column with the analysis verdict so the
+    # status pill in the header reflects the AI's call. We guard against
+    # garbage values via the enum's `priorities` keys.
+    if args[:priority].present? && WorkOrder.priorities.key?(args[:priority].to_s)
+      work_order.update!(priority: args[:priority])
+    end
   end
 
   # Push the current analysis UI to the WorkOrder's Turbo Stream channel.

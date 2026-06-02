@@ -14,35 +14,43 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <%# Google Fonts: Hanken Grotesk for headlines, Inter for body, plus
+        Material Symbols Outlined for icons. preconnect speeds up TLS. %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap" rel="stylesheet">
+
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-zinc-50 min-h-screen text-zinc-900 antialiased">
-    <nav class="bg-white border-b border-zinc-200 shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        <%= link_to root_path, class: "flex items-center space-x-2 text-zinc-900 hover:text-indigo-600 transition" do %>
-          <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">CC</div>
-          <span class="font-semibold text-lg"><%= t(".app_short") %></span>
-          <span class="hidden sm:inline text-zinc-400 text-sm"><%= t(".app_tagline") %></span>
+  <body class="bg-background min-h-screen text-on-surface antialiased font-body">
+    <header class="bg-surface-container-lowest border-b border-outline-variant">
+      <div class="flex justify-between items-center w-full px-6 h-16 max-w-[1400px] mx-auto">
+        <%= link_to root_path, class: "flex items-center gap-4 text-on-surface hover:text-primary transition-colors" do %>
+          <span class="font-headline text-headline-sm font-bold"><%= t(".app_short") %></span>
+          <span class="text-on-surface-variant text-label-md hidden md:inline"><%= t(".app_tagline") %></span>
         <% end %>
 
-        <div class="flex items-center space-x-1 text-sm">
-          <%= link_to t(".nav.work_orders"), work_orders_path, class: "px-3 py-2 rounded-md text-zinc-700 hover:bg-zinc-100 transition" %>
-          <%= link_to t(".nav.sidekiq"), "/sidekiq", target: "_blank", rel: "noopener", class: "px-3 py-2 rounded-md text-zinc-500 hover:bg-zinc-100 transition" %>
-        </div>
+        <nav class="hidden md:flex items-center gap-8">
+          <% nav_link_classes = "text-label-md font-medium transition-colors pb-1" %>
+          <%= link_to t(".nav.work_orders"),
+                      work_orders_path,
+                      class: "#{nav_link_classes} #{current_page?(work_orders_path) || controller_name == "work_orders" ? "text-primary border-b-2 border-primary font-bold" : "text-on-surface-variant hover:text-primary"}" %>
+        </nav>
       </div>
-    </nav>
+    </header>
 
     <% if flash[:notice] || flash[:alert] %>
-      <div class="max-w-5xl mx-auto px-4 mt-4">
+      <div class="max-w-[1400px] mx-auto px-6 mt-4">
         <% if flash[:notice] %>
-          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md px-4 py-3 text-sm">
+          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg px-4 py-3 text-body-sm">
             <%= flash[:notice] %>
           </div>
         <% end %>
         <% if flash[:alert] %>
-          <div class="bg-red-50 border border-red-200 text-red-800 rounded-md px-4 py-3 text-sm">
+          <div class="bg-error-container border border-error/30 text-on-error-container rounded-lg px-4 py-3 text-body-sm">
             <%= flash[:alert] %>
           </div>
         <% end %>
@@ -52,5 +60,19 @@
     <main>
       <%= yield %>
     </main>
+
+    <footer class="bg-surface mt-8 border-t border-outline-variant">
+      <div class="flex flex-col md:flex-row justify-between items-center py-4 px-6 w-full max-w-[1400px] mx-auto gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-label-md font-semibold text-secondary"><%= t(".app_short") %></span>
+          <span class="text-body-sm text-on-tertiary-fixed-variant">© <%= Date.current.year %> <%= t(".footer_tagline") %></span>
+        </div>
+        <div class="flex gap-6">
+          <a class="text-label-md text-on-tertiary-fixed-variant hover:text-primary transition-colors" href="#"><%= t(".footer.support") %></a>
+          <a class="text-label-md text-on-tertiary-fixed-variant hover:text-primary transition-colors" href="#"><%= t(".footer.docs") %></a>
+          <a class="text-label-md text-on-tertiary-fixed-variant hover:text-primary transition-colors" href="#"><%= t(".footer.privacy") %></a>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>
