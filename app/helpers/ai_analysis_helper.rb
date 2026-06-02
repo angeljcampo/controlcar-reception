@@ -31,26 +31,27 @@ module AiAnalysisHelper
     "other"            => "help_outline"
   }.freeze
 
-  # Probability pill colors per the Stitch reference: no border, no dot,
-  # bg-100 / text-800, uppercase 10px.
+  # Probability pill colors — dark theme (Garage). Saturated-dark bg with
+  # light text so they read clearly on the panel surface (#11161E).
   PROBABILITY_CLASSES = {
-    "high"   => "bg-red-100 text-red-800",
-    "medium" => "bg-amber-100 text-amber-800",
-    "low"    => "bg-green-100 text-green-800"
+    "high"   => "bg-red-900/50 text-red-300 border border-red-500/30",
+    "medium" => "bg-amber-900/50 text-amber-300 border border-amber-500/30",
+    "low"    => "bg-emerald-900/50 text-emerald-300 border border-emerald-500/30"
   }.freeze
 
   # Solid color for the ranked numeric circle next to each failure card.
+  # Saturated tones — they're meant to draw the eye on the dark panel.
   PROBABILITY_RING_BG = {
-    "high"   => "bg-error text-on-error",
-    "medium" => "bg-orange-500 text-white",
-    "low"    => "bg-secondary text-on-secondary"
+    "high"   => "bg-red-500 text-white",
+    "medium" => "bg-amber-500 text-zinc-900",
+    "low"    => "bg-emerald-500 text-zinc-900"
   }.freeze
 
   # Text color for the "ALTA/MEDIA/BAJA" label next to the failure title.
   PROBABILITY_LABEL_COLOR = {
-    "high"   => "text-error",
-    "medium" => "text-orange-500",
-    "low"    => "text-secondary"
+    "high"   => "text-red-400",
+    "medium" => "text-amber-400",
+    "low"    => "text-emerald-400"
   }.freeze
 
   def category_label(category)
@@ -63,13 +64,13 @@ module AiAnalysisHelper
     CATEGORY_SYMBOLS.fetch(category, "help_outline")
   end
 
-  # Stroke color for the confidence ring, bucketed the same way as the
-  # old bar (<0.5 red, <0.7 yellow, ≥0.7 emerald).
-  def confidence_stroke_class(analysis)
+  # Donut color (used as CSS color, not stroke). Buckets:
+  #   <0.5 → danger red; <0.7 → amber; ≥0.7 → lime (Garage accent).
+  def confidence_color_var(analysis)
     case analysis.confidence.to_f
-    when 0...0.5 then "stroke-red-500"
-    when 0.5...0.7 then "stroke-amber-500"
-    else "stroke-primary"
+    when 0...0.5 then "var(--wof-danger)"
+    when 0.5...0.7 then "var(--wof-warn)"
+    else "var(--wof-accent)"
     end
   end
 

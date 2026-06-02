@@ -429,3 +429,25 @@
 .wof-list-date {
   font-size: 11.5px; color: var(--wof-faint); white-space: nowrap;
 }
+
+/* ── Failure cards (Posibles fallas section) ──────────────────────── */
+.wof-failure-card {
+  background: var(--wof-panel);
+  border: 1px solid var(--wof-panel-line);
+  border-radius: 14px;
+  padding: 18px 20px;
+  transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.wof-failure-card:hover {
+  border-color: rgba(194, 249, 78, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Override step-line color so it reads on a dark background. The
+   selectors are scoped inside .wof so the rest of the app's light
+   theme isn't affected. */
+.wof .step-line-top::before,
+.wof .step-line-bottom::after {
+  background-color: var(--wof-field-line);
+}
