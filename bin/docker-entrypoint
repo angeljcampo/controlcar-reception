@@ -1,8 +1,14 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
-fi
+# Run db:prepare automatically when starting the web/server process.
+# This used to be Render's `preDeployCommand`, but that's now paid-only,
+# so we do it from the entrypoint. The worker (sidekiq) deliberately
+# skips this — the web container is the single source of truth for
+# schema preparation, and the worker just connects to the same DB.
+case "$*" in
+  *puma*|*"rails server"*)
+    ./bin/rails db:prepare
+    ;;
+esac
 
 exec "${@}"

@@ -31,10 +31,9 @@ services:
     region: oregon
     dockerfilePath: ./Dockerfile
     # Render asigna $PORT dinámicamente; Puma lo lee via ENV.
+    # bin/docker-entrypoint corre `db:prepare` antes de arrancar puma
+    # (preDeployCommand requiere plan pago en Render).
     dockerCommand: bundle exec puma -C config/puma.rb
-    # Migrations corren ANTES del start, dentro del deploy lifecycle.
-    # `db:prepare` es safe: crea la BD si no existe, migra si hace falta.
-    preDeployCommand: bundle exec rails db:prepare
     healthCheckPath: /up
     envVars:
       - key: RAILS_ENV
