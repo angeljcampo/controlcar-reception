@@ -1,0 +1,68 @@
+<%# Form de upload de PDFs. Turbo-driven: tras éxito, prepend la row
+    nueva a la lista y reseta este form sin recargar la página. %>
+<div class="wof-card" style="padding: 22px 26px;">
+  <h2 style="font-size: 16px; font-weight: 700; color: var(--wof-ink); margin: 0 0 16px;">
+    <span class="material-symbols-outlined align-middle" style="color: var(--wof-accent); font-size: 18px;">upload_file</span>
+    Subir PDF
+  </h2>
+
+  <%= form_with model: document,
+                url: knowledge_documents_path,
+                multipart: true,
+                data: { turbo: true },
+                class: "space-y-4" do |f| %>
+
+    <% if document.errors.any? %>
+      <div style="padding: 10px 14px; border-radius: 8px; background: rgba(255,118,118,0.12); color: var(--wof-danger); border: 1px solid rgba(255,118,118,0.35); font-size: 13px;">
+        <%= document.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <%= f.label :title, class: "wof-label", style: "display: block; margin-bottom: 6px;" %>
+        <%= f.text_field :title,
+                         placeholder: "Ej: Manual Toyota Corolla 2018",
+                         required: true,
+                         class: "wof-field",
+                         style: "width: 100%;" %>
+      </div>
+
+      <div>
+        <%= f.label :chunking_strategy, "Estrategia de chunking", class: "wof-label", style: "display: block; margin-bottom: 6px;" %>
+        <%= f.select :chunking_strategy,
+                     [
+                       [ "Estructurado por DTC (manuales con códigos P0xxx)", "structured_dtc" ],
+                       [ "Token window (prose narrativa, 800 tok)",            "token_window" ]
+                     ],
+                     {},
+                     class: "wof-field",
+                     style: "width: 100%;" %>
+      </div>
+    </div>
+
+    <div>
+      <%= f.label :file, "Archivo PDF", class: "wof-label", style: "display: block; margin-bottom: 6px;" %>
+      <%= f.file_field :file,
+                       accept: "application/pdf",
+                       required: true,
+                       class: "wof-field",
+                       style: "width: 100%; padding: 10px;" %>
+    </div>
+
+    <label class="flex items-center gap-2" style="font-size: 13.5px; color: var(--wof-ink-soft);">
+      <%= check_box_tag "knowledge_document[translate]", "1", true,
+                        style: "accent-color: var(--wof-accent);" %>
+      Traducir al español al ingestar
+      <span style="font-size: 12px; color: var(--wof-muted);">
+        (recomendado — mejora recall semántico, agrega ~10 min y ~$0.05)
+      </span>
+    </label>
+
+    <div>
+      <%= f.submit "Procesar PDF",
+                   class: "wof-submit",
+                   style: "min-width: 200px;" %>
+    </div>
+  <% end %>
+</div>

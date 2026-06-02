@@ -1,0 +1,78 @@
+<%# Knowledge Base administration page — Garage dark theme. %>
+<%# Subscribe a la stream "knowledge_documents". IngestPdfJob hace
+    broadcast_replace_to esa stream cuando el status del doc cambia
+    (pending → processing → ready/failed), así la UI refleja el progreso
+    en vivo sin reload. %>
+<%= turbo_stream_from "knowledge_documents" %>
+
+<div class="wof">
+  <div class="wof-page" style="padding-top: 34px;">
+    <div class="wof-container" style="max-width: 1200px;">
+
+      <%# ── Header con stats agregadas ────────────────────────────── %>
+      <div class="wof-index-header">
+        <div>
+          <h1 class="wof-title">Knowledge Base</h1>
+          <p class="wof-subtitle">Manuales técnicos disponibles para el análisis con RAG.</p>
+        </div>
+        <%= link_to root_path, class: "wof-submit",
+                    style: "min-width: 0; padding: 0 22px; text-decoration: none; background: transparent; color: var(--wof-accent); border: 1px solid var(--wof-accent);" do %>
+          <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+          Volver a OTs
+        <% end %>
+      </div>
+
+      <%# Stats card — 4 columnas en grid para que cada label tenga su
+          propio bloque (el wof-label tiene letter-spacing alto, en flex
+          row los labels uppercase se pegan visualmente).
+          Uso grid inline porque tailwindcss-rails purge no incluye
+          grid-cols-* si no se usaron en otra parte. %>
+      <div class="wof-card mb-6" style="padding: 22px 26px;">
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px;">
+          <div>
+            <div class="wof-label" style="margin-bottom: 6px;">Documentos</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--wof-ink); line-height: 1;"><%= @documents.size %></div>
+          </div>
+          <div>
+            <div class="wof-label" style="margin-bottom: 6px;">Chunks indexados</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--wof-ink); line-height: 1;"><%= number_with_delimiter(@total_chunks) %></div>
+          </div>
+          <div>
+            <div class="wof-label" style="margin-bottom: 6px;">Páginas procesadas</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--wof-ink); line-height: 1;"><%= number_with_delimiter(@total_pages.to_i) %></div>
+          </div>
+          <div>
+            <div class="wof-label" style="margin-bottom: 6px;">Costo embeddings</div>
+            <div style="font-size: 24px; font-weight: 700; color: var(--wof-accent); line-height: 1;">
+              <%= format("$%.2f", @total_embedding_cost.to_i / 100.0) %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%# ── Form de upload ────────────────────────────────────────── %>
+      <div id="knowledge_documents_form">
+        <%= render "form", document: @new_document %>
+      </div>
+
+      <%# ── Listado de documentos ─────────────────────────────────── %>
+      <div id="knowledge_documents_list" class="mt-6 space-y-3">
+        <% if @documents.empty? %>
+          <div class="wof-card" style="text-align: center; padding: 56px 30px;">
+            <div style="display:inline-flex; width:56px; height:56px; border-radius:14px; background:var(--wof-accent-soft); color:var(--wof-accent); align-items:center; justify-content:center; margin-bottom:18px;">
+              <span class="material-symbols-outlined" style="font-size:28px">menu_book</span>
+            </div>
+            <p style="color: var(--wof-ink-soft); font-size: 15px; margin: 0;">
+              Aún no hay documentos. Subí el primer PDF para empezar.
+            </p>
+          </div>
+        <% else %>
+          <% @documents.each do |doc| %>
+            <%= render "row", document: doc %>
+          <% end %>
+        <% end %>
+      </div>
+
+    </div>
+  </div>
+</div>
