@@ -82,7 +82,7 @@ group :development, :test do
 
   # RSpec — test framework. Proyecto creado con --skip-test, así que esto
   # es la primera test stack (no hay Minitest preexistente).
-  gem "rspec-rails", "~> 7.1"
+  gem "rspec-rails", "~> 8.0"
 end
 
 group :test do
